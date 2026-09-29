@@ -45,19 +45,39 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{di
 <footer>602은행 · 학급용 가상 시스템</footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <script>
 const SUPABASE_URL='https://qugdtljqifagaanrelxq.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K1mj11BXsdVYBWroata6cg_g9WKcfL4';
-const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let supabase=null;
+let supabaseReady=false;
+try{
+  if(window.supabase&&typeof window.supabase.createClient==='function'){
+    supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+    supabaseReady=true;
+  }
+}catch(e){
+  console.error('602은행 Supabase 초기화 오류:',e);
+}
 let currentMember=null;
 let adminCode=null;
 
 function show(id){['home','student','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
 function msg(id,t,err=false){const el=document.getElementById(id);if(el)el.innerHTML='<div class="notice '+(err?'error':'')+'">'+esc(t)+'</div>'}
+function requireSupabase(target){
+  if(supabaseReady&&supabase)return true;
+  msg(target,'은행 서버 연결 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.',true);
+  return false;
+}
+window.addEventListener('error',function(e){
+  console.error('602은행 오류:',e.error||e.message);
+  const target=document.getElementById('smsg')||document.getElementById('amsg');
+  if(target&&!supabaseReady) msg(target,'은행 서버 연결에 실패했습니다. 페이지를 새로고침해 주세요.',true);
+});
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 async function studentLogin(){
+ if(!requireSupabase('smsg'))return;
  const no=document.getElementById('sno').value.trim(),name=document.getElementById('sname').value.trim(),pin=document.getElementById('spin').value.trim();
  if(!no||!name||!/^[0-9]{4,8}$/.test(pin))return msg('smsg','계좌번호, 이름, 고유번호를 확인하세요.',true);
  const {data,error}=await supabase.rpc('bank_member_login',{p_no:no,p_name:name,p_pin:pin});
@@ -88,6 +108,7 @@ function renderStudent(){
 }
 
 async function studentTx(type){
+ if(!requireSupabase('txmsg'))return;
  const amt=Number(document.getElementById('amt').value);
  if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1원 이상의 금액을 입력하세요.',true);
  const {data,error}=await supabase.rpc('bank_transaction',{p_no:currentMember.no,p_pin:currentMember.pin,p_type:type,p_amount:amt});
@@ -108,6 +129,7 @@ function studentLogout(){
 }
 
 async function adminLogin(){
+ if(!requireSupabase('amsg'))return;
  const code=document.getElementById('apin').value.trim();
  if(!code)return msg('amsg','관리자 코드를 입력하세요.',true);
  const {data,error}=await supabase.rpc('bank_admin_login',{p_code:code});
@@ -118,6 +140,7 @@ async function adminLogin(){
 }
 
 async function adminRefresh(){
+ if(!requireSupabase('amsg'))return;
  const {data,error}=await supabase.rpc('bank_admin_list',{p_code:adminCode});
  if(error||!data)return msg('amsg',error?.message||'관리자 데이터를 불러오지 못했습니다.',true);
  renderAdmin(data);
@@ -140,14 +163,16 @@ function renderAdmin(data){
 }
 
 async function addAccount(){
+ if(!requireSupabase('addmsg'))return;
  const n=document.getElementById('newname').value.trim(),no=document.getElementById('newno').value.trim(),p=document.getElementById('newpin').value.trim(),b=Number(document.getElementById('newbal').value);
- if(!n||!/^[0-9]{3}$/.test(no.replace(/^602-/,''))||!/^[0-9]{3}$/.test(no.replace(/^602-/,''))||!/^602-[0-9]{3}$/.test(no)||!/^[0-9]{4,8}$/.test(p)||!Number.isInteger(b)||b<0)return msg('addmsg','이름, 계좌번호(602-000), 고유번호(4~8자리), 초기 잔액을 확인하세요.',true);
+ if(!n||!/^[0-9]{3}$/.test(no.replace(/^602-/,''))||!/^602-[0-9]{3}$/.test(no)||!/^[0-9]{4,8}$/.test(p)||!Number.isInteger(b)||b<0)return msg('addmsg','이름, 계좌번호(602-000), 고유번호(4~8자리), 초기 잔액을 확인하세요.',true);
  const {data,error}=await supabase.rpc('bank_admin_add',{p_code:adminCode,p_name:n,p_no:no,p_pin:p,p_balance:b});
  if(error||!data)return msg('addmsg',error?.message||'계좌 생성에 실패했습니다.',true);
  await adminRefresh();
 }
 
 async function delAccount(no){
+ if(!requireSupabase('amsg'))return;
  if(!confirm(no+' 계좌를 삭제할까요?'))return;
  const {data,error}=await supabase.rpc('bank_admin_delete',{p_code:adminCode,p_no:no});
  if(error||data!==true)return alert(error?.message||'계좌 삭제에 실패했습니다.');
