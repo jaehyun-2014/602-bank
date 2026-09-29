@@ -93,7 +93,7 @@ function renderStudent(){
  d.innerHTML=`
  <div class="grid">
   <div class="panel"><div class="eyebrow">MY ACCOUNT</div><h1 style="margin:5px 0">${esc(a.name)}</h1><p class="muted">${esc(a.no)}</p></div>
-  <div class="balance"><span>현재 잔액</span><strong>${Number(a.balance).toLocaleString()}원</strong></div>
+  <div class="balance"><span>현재 잔액</span><strong>${Number(a.balance).toLocaleString()}공</strong></div>
  </div>
  <div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p>
   <input id="amt" type="number" min="1" placeholder="금액">
@@ -110,7 +110,7 @@ function renderStudent(){
 async function studentTx(type){
  if(!requireSupabase('txmsg'))return;
  const amt=Number(document.getElementById('amt').value);
- if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1원 이상의 금액을 입력하세요.',true);
+ if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1공 이상의 금액을 입력하세요.',true);
  const {data,error}=await supabaseClient.rpc('bank_transaction',{p_no:currentMember.no,p_pin:currentMember.pin,p_type:type,p_amount:amt});
  if(error||!data)return msg('txmsg',error?.message||'거래에 실패했습니다.',true);
  const login=await supabaseClient.rpc('bank_member_login',{p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin});
@@ -151,13 +151,13 @@ function renderAdmin(data){
  const accounts=data.accounts||[],all=data.transactions||[];
  const total=accounts.reduce((s,a)=>s+Number(a.balance),0);
  d.innerHTML=
- '<div class="stats"><div class="stat"><span>계좌</span><b>'+accounts.length+'개</b></div><div class="stat"><span>전체 잔액</span><b>'+total.toLocaleString()+'원</b></div><div class="stat"><span>거래</span><b>'+all.length+'건</b></div><div class="stat"><span>저장 방식</span><b>클라우드</b></div></div>'+
- '<div class="panel"><h2>회원 계좌</h2>'+(
- accounts.length?accounts.map(a=>'<div class="account"><div><b>'+esc(a.name)+'</b><small>'+esc(a.no)+'</small></div><strong>'+Number(a.balance).toLocaleString()+'원</strong><button class="danger" onclick="delAccount(\''+esc(a.no)+'\')">삭제</button></div>').join('')
- :'<p class="muted">등록된 회원 계좌가 없습니다.</p>')+'</div>'+
- '<div class="panel"><h2>회원 추가</h2><div class="grid"><input id="newname" placeholder="이름"><input id="newno" placeholder="계좌번호 602-000"><input id="newpin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><input id="newbal" type="number" min="0" value="0" placeholder="초기 잔액"></div><button class="btn blue" onclick="addAccount()">계좌 만들기</button><div id="addmsg"></div></div>'+
+ '<div class="stats"><div class="stat"><span>계좌</span><b>'+accounts.length+'개</b></div><div class="stat"><span>전체 잔액</span><b>'+total.toLocaleString()+'공</b></div><div class="stat"><span>거래</span><b>'+all.length+'건</b></div><div class="stat"><span>저장 방식</span><b>클라우드</b></div></div>'+
+ '<div class="panel"><h2>회공 계좌</h2>'+(
+ accounts.length?accounts.map(a=>'<div class="account"><div><b>'+esc(a.name)+'</b><small>'+esc(a.no)+'</small></div><strong>'+Number(a.balance).toLocaleString()+'공</strong><button class="danger" onclick="delAccount(\''+esc(a.no)+'\')">삭제</button></div>').join('')
+ :'<p class="muted">등록된 회공 계좌가 없습니다.</p>')+'</div>'+
+ '<div class="panel"><h2>회공 추가</h2><div class="grid"><input id="newname" placeholder="이름"><input id="newno" placeholder="계좌번호 602-000"><input id="newpin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><input id="newbal" type="number" min="0" value="0" placeholder="초기 잔액"></div><button class="btn blue" onclick="addAccount()">계좌 만들기</button><div id="addmsg"></div></div>'+
  '<div class="panel"><h2>전체 거래내역</h2>'+(
- all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'원</strong></div>').join('')
+ all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join('')
  :'<p class="muted">거래내역이 없습니다.</p>')+'</div>'+
  '<button class="btn ghost" onclick="adminLogout()">잠금</button>';
 }
@@ -187,7 +187,7 @@ function adminLogout(){
 }
 
 function historyHTML(tx){
- return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+esc(t.date)+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'원</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'
+ return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+esc(t.date)+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'
 }
 </script>
 </body>
