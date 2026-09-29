@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>602은행</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eef4ff;color:#152238}
+button,input{font:inherit}button{cursor:pointer;border:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px 50px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}.logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px}.mark{width:44px;height:44px;border-radius:13px;background:#155eef;color:#fff;display:grid;place-items:center;font-weight:900}
+.badge{padding:8px 12px;background:#fff;border:1px solid #dce5f5;border-radius:999px;color:#52627a;font-size:13px}
+.hero{background:linear-gradient(135deg,#0d2b62,#1769e0);color:#fff;border-radius:28px;padding:48px 34px;box-shadow:0 18px 45px #174c9b26;margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:1.5px;font-weight:800;opacity:.72}.hero h1{font-size:clamp(42px,8vw,72px);margin:8px 0}.hero p{font-size:18px;opacity:.88}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.btn{padding:13px 18px;border-radius:12px;font-weight:750;transition:.15s}.btn:hover{transform:translateY(-1px)}.primary{background:#fff;color:#1255c5}.blue{background:#155eef;color:#fff}.dark{background:#10294f;color:#fff}.green{background:#0e9f6e;color:#fff}.red{background:#d92d20;color:#fff}.ghost{background:#eef3fb;color:#31435e}
+.notice{background:#fff8e6;border:1px solid #f4d98a;padding:12px 14px;border-radius:11px;margin-top:14px;font-size:14px}.error{background:#fff0ef;border-color:#f4b8b2;color:#b42318}
+.panel{background:#fff;border:1px solid #dfe7f3;border-radius:20px;padding:22px;box-shadow:0 8px 25px #102a4d0a;margin-bottom:18px}.panel h2{margin:0 0 16px;font-size:19px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.login{max-width:500px;margin:40px auto}.login .mark{margin-bottom:18px}
+input{width:100%;padding:13px 14px;border:1px solid #ccd7e7;border-radius:11px;outline:0;background:#fff;margin:6px 0 10px}input:focus{border-color:#4c8bf5;box-shadow:0 0 0 3px #4c8bf51c}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.top a{color:#1255c5;text-decoration:none;font-weight:800}.muted{color:#66758b;font-size:14px}.balance{background:linear-gradient(135deg,#123a83,#2174e8);color:#fff;border-radius:18px;padding:24px}.balance span{opacity:.75}.balance strong{display:block;font-size:34px;margin-top:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:#fff;border:1px solid #dfe7f3;border-radius:16px;padding:18px}.stat span{display:block;color:#718096;font-size:13px}.stat b{display:block;margin-top:5px;font-size:21px}
+.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}
+footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{display:none!important}
+@media(max-width:720px){.grid,.stats{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
+@media(max-width:480px){.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo"><div class="mark">602</div>602은행</div><div class="badge">학급 가상화폐 시스템</div></header>
+
+<section id="home">
+<div class="hero"><div class="eyebrow">CLASS BANKING</div><h1>602은행</h1><p>우리 반 전용 가상화폐 은행</p><div class="actions"><button class="btn primary" onclick="show('student')">학생용</button><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button></div></div>
+<div class="panel"><h2>안내</h2><p class="muted">602은행은 학급 안에서 사용하는 가상 화폐 관리 시스템입니다. 실제 금융기관이나 실제 화폐와 관련이 없습니다.</p></div>
+</section>
+
+<section id="student" class="hidden">
+<div class="top"><a href="#" onclick="show('home');return false">← 602은행</a><b>학생용</b></div>
+<div id="studentLogin" class="panel login"><div class="mark">602</div><h2>내 계좌</h2><p class="muted">계좌번호와 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
+<div id="studentDash" class="hidden"></div>
+</section>
+
+<section id="admin" class="hidden">
+<div class="top"><a href="#" onclick="show('home');return false">← 602은행</a><b>관리자 통합뷰어</b></div>
+<div id="adminLogin" class="panel login"><div class="mark">602</div><h2>관리자 확인</h2><p class="muted">관리자 코드를 입력하세요.</p><input id="apin" type="password" inputmode="numeric" placeholder="관리자 코드"><button class="btn blue" style="width:100%" onclick="adminLogin()">관리자 확인</button><div id="amsg"></div></div>
+<div id="adminDash" class="hidden"></div>
+</section>
+<footer>602은행 · 학급용 가상 시스템</footer>
+</div>
+
+<script>
+const KEY='bank602_v2';
+let data=JSON.parse(localStorage.getItem(KEY)||'null');
+if(!data)data={admin:'6020',next:4,accounts:[
+{no:'602-001',name:'학생1',pin:'1234',balance:1000,tx:[]},
+{no:'602-002',name:'학생2',pin:'5678',balance:1000,tx:[]},
+{no:'602-003',name:'학생3',pin:'2468',balance:1000,tx:[]}]};
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function show(id){['home','student','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+function msg(id,t,err=false){document.getElementById(id).innerHTML='<div class="notice '+(err?'error':'')+'">'+t+'</div>'}
+function now(){return new Date().toLocaleString('ko-KR')}
+function studentLogin(){
+ const no=document.getElementById('sno').value.trim(),pin=document.getElementById('spin').value.trim(),a=data.accounts.find(x=>x.no===no&&x.pin===pin);
+ if(!a)return msg('smsg','계좌번호 또는 고유번호가 올바르지 않습니다.',true);
+ renderStudent(a)
+}
+function renderStudent(a){
+ document.getElementById('studentLogin').classList.add('hidden');const d=document.getElementById('studentDash');d.classList.remove('hidden');
+ d.innerHTML='<div class="grid"><div class="panel"><div class="eyebrow">MY ACCOUNT</div><h1 style="margin:5px 0">'+esc(a.name)+'</h1><p class="muted">'+a.no+'</p></div><div class="balance"><span>현재 잔액</span><strong>'+a.balance.toLocaleString()+'원</strong></div></div>'+
+ '<div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p><input id="amt" type="number" min="1" placeholder="금액"><div class="two"><button class="btn green" onclick="studentTx(''+a.no+'','deposit')">입금</button><button class="btn red" onclick="studentTx(''+a.no+'','withdraw')">출금</button></div><div id="txmsg"></div></div>'+
+ '<div class="panel"><h2>내 거래내역</h2><div id="history">'+historyHTML(a.tx)+'</div></div><button class="btn ghost" onclick="studentLogout()">나가기</button>'
+}
+function studentTx(no,type){
+ const a=data.accounts.find(x=>x.no===no),amt=Number(document.getElementById('amt').value);
+ if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1원 이상의 금액을 입력하세요.',true);
+ if(type==='withdraw'&&a.balance<amt)return msg('txmsg','잔액이 부족합니다.',true);
+ a.balance+=type==='deposit'?amt:-amt;a.tx.unshift({type,amount:amt,date:now()});save();renderStudent(a);msg('txmsg',type==='deposit'?'입금 완료':'출금 완료')
+}
+function studentLogout(){document.getElementById('studentDash').classList.add('hidden');document.getElementById('studentLogin').classList.remove('hidden');document.getElementById('smsg').innerHTML='';document.getElementById('sno').value='';document.getElementById('spin').value=''}
+function adminLogin(){if(document.getElementById('apin').value!==data.admin)return msg('amsg','관리자 코드가 올바르지 않습니다.',true);document.getElementById('adminLogin').classList.add('hidden');renderAdmin()}
+function renderAdmin(){
+ const d=document.getElementById('adminDash');d.classList.remove('hidden');let total=data.accounts.reduce((s,a)=>s+a.balance,0),all=[];data.accounts.forEach(a=>a.tx.forEach(t=>all.push({...t,name:a.name,no:a.no})));all.sort((a,b)=>b.date.localeCompare(a.date));
+ d.innerHTML='<div class="stats"><div class="stat"><span>계좌</span><b>'+data.accounts.length+'개</b></div><div class="stat"><span>전체 잔액</span><b>'+total.toLocaleString()+'원</b></div><div class="stat"><span>거래</span><b>'+all.length+'건</b></div><div class="stat"><span>다음 계좌</span><b>602-'+String(data.next).padStart(3,'0')+'</b></div></div>'+
+ '<div class="panel"><h2>학생 계좌</h2>'+data.accounts.map(a=>'<div class="account"><div><b>'+esc(a.name)+'</b><small>'+a.no+'</small></div><strong>'+a.balance.toLocaleString()+'원</strong><button class="danger" onclick="delAccount(\''+a.no+'\')">삭제</button></div>').join('')+'</div>'+
+ '<div class="panel"><h2>학생 추가</h2><div class="grid"><input id="newname" placeholder="이름"><input id="newpin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><input id="newbal" type="number" min="0" value="0" placeholder="초기 잔액"></div><button class="btn blue" onclick="addAccount()">계좌 만들기</button><div id="addmsg"></div></div>'+
+ '<div class="panel"><h2>전체 거래내역</h2>'+(all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+t.no+'</b><small>'+t.date+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+t.amount.toLocaleString()+'원</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>')+'</div><button class="btn ghost" onclick="adminLogout()">잠금</button>'
+}
+function addAccount(){let n=document.getElementById('newname').value.trim(),p=document.getElementById('newpin').value.trim(),b=Number(document.getElementById('newbal').value);if(!n||!/^[0-9]{4,8}$/.test(p)||!Number.isInteger(b)||b<0)return msg('addmsg','이름, 고유번호(4~8자리), 초기 잔액을 확인하세요.',true);let no='602-'+String(data.next++).padStart(3,'0');data.accounts.push({no,name:n,pin:p,balance:b,tx:[]});save();renderAdmin();msg('addmsg',no+' 계좌 생성 완료')}
+function delAccount(no){if(confirm(no+' 계좌를 삭제할까요?')){data.accounts=data.accounts.filter(a=>a.no!==no);save();renderAdmin()}}
+function adminLogout(){document.getElementById('adminDash').classList.add('hidden');document.getElementById('adminLogin').classList.remove('hidden');document.getElementById('apin').value=''}
+function historyHTML(tx){return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+t.date+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+t.amount.toLocaleString()+'원</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+</script>
+</body>
+</html>
