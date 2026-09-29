@@ -237,3 +237,6 @@ grant execute on function public.bank_admin_login(text) to anon;
 grant execute on function public.bank_admin_list(text) to anon;
 grant execute on function public.bank_admin_add(text,text,text,text,bigint) to anon;
 grant execute on function public.bank_admin_delete(text,text) to anon;
+
+-- PostgREST schema cache 새로고침
+notify pgrst, 'reload schema';
