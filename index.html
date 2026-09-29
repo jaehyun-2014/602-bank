@@ -28,11 +28,11 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{di
 <header><div class="logo"><div class="mark">602</div>602은행</div><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button></header>
 
 <section id="home">
-<div class="hero"><div class="eyebrow">CLASS BANKING</div><h1>602은행</h1><p>우리 반 전용 가상화폐 은행</p><div class="actions"><button class="btn primary" onclick="show('student')">학생용</button></div></div>
+<div class="hero"><div class="eyebrow">CLASS BANKING</div><h1>602은행</h1><p>우리 반 전용 가상화폐 은행</p><div class="actions"><button class="btn primary" onclick="show('student')">일반 로그인</button></div></div>
 </section>
 
 <section id="student" class="hidden">
-<div class="top"><a href="#" onclick="show('home');return false">← 602은행</a><b>학생용</b></div>
+<div class="top"><a href="#" onclick="show('home');return false">← 602은행</a><b>일반 로그인</b></div>
 <div id="studentLogin" class="panel login"><div class="mark">602</div><h2>내 계좌</h2><p class="muted">계좌번호, 이름, 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="sname" placeholder="이름"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
 <div id="studentDash" class="hidden"></div>
 </section>
