@@ -62,10 +62,24 @@ function studentLogin(){
  renderStudent(a)
 }
 function renderStudent(a){
- document.getElementById('studentLogin').classList.add('hidden');const d=document.getElementById('studentDash');d.classList.remove('hidden');
- d.innerHTML='<div class="grid"><div class="panel"><div class="eyebrow">MY ACCOUNT</div><h1 style="margin:5px 0">'+esc(a.name)+'</h1><p class="muted">'+a.no+'</p></div><div class="balance"><span>현재 잔액</span><strong>'+a.balance.toLocaleString()+'원</strong></div></div>'+
- '<div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p><input id="amt" type="number" min="1" placeholder="금액"><div class="two"><button class="btn green" onclick="studentTx(''+a.no+'','deposit')">입금</button><button class="btn red" onclick="studentTx(''+a.no+'','withdraw')">출금</button></div><div id="txmsg"></div></div>'+
- '<div class="panel"><h2>내 거래내역</h2><div id="history">'+historyHTML(a.tx)+'</div></div><button class="btn ghost" onclick="studentLogout()">나가기</button>'
+ document.getElementById('studentLogin').classList.add('hidden');
+ const d=document.getElementById('studentDash');
+ d.classList.remove('hidden');
+ d.innerHTML=`
+ <div class="grid">
+  <div class="panel"><div class="eyebrow">MY ACCOUNT</div><h1 style="margin:5px 0">${esc(a.name)}</h1><p class="muted">${a.no}</p></div>
+  <div class="balance"><span>현재 잔액</span><strong>${a.balance.toLocaleString()}원</strong></div>
+ </div>
+ <div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p>
+  <input id="amt" type="number" min="1" placeholder="금액">
+  <div class="two">
+   <button class="btn green" onclick="studentTx('${a.no}','deposit')">입금</button>
+   <button class="btn red" onclick="studentTx('${a.no}','withdraw')">출금</button>
+  </div>
+  <div id="txmsg"></div>
+ </div>
+ <div class="panel"><h2>내 거래내역</h2><div id="history">${historyHTML(a.tx)}</div></div>
+ <button class="btn ghost" onclick="studentLogout()">나가기</button>`;
 }
 function studentTx(no,type){
  const a=data.accounts.find(x=>x.no===no),amt=Number(document.getElementById('amt').value);
