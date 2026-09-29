@@ -111,7 +111,9 @@ async function studentTx(type){
  if(!requireSupabase('txmsg'))return;
  const amt=Number(document.getElementById('amt').value);
  if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1공 이상의 금액을 입력하세요.',true);
- const {data,error}=await supabaseClient.rpc('bank_transaction',{p_no:currentMember.no,p_pin:currentMember.pin,p_type:type,p_amount:amt});
+ const adminApproval=prompt('관리자 승인 코드를 입력하세요.');
+ if(!adminApproval)return msg('txmsg','관리자 승인 코드가 필요합니다.',true);
+ const {data,error}=await supabaseClient.rpc('bank_transaction',{p_no:currentMember.no,p_pin:currentMember.pin,p_type:type,p_amount:amt,p_admin_code:adminApproval.trim()});
  if(error||!data)return msg('txmsg',error?.message||'거래에 실패했습니다.',true);
  const login=await supabaseClient.rpc('bank_member_login',{p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin});
  if(login.error||!login.data)return msg('txmsg','거래는 완료됐지만 계좌 새로고침에 실패했습니다.',true);
