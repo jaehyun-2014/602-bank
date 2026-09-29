@@ -90,7 +90,11 @@ begin
 end;
 $$;
 
-create or replace function public.bank_transaction(p_no text, p_pin text, p_type text, p_amount bigint)
+drop function if exists public.bank_transaction(text,text,text,bigint);
+
+create or replace function public.bank_transaction(
+  p_no text, p_pin text, p_type text, p_amount bigint, p_admin_code text
+)
 returns jsonb
 language plpgsql
 security definer
@@ -99,6 +103,10 @@ as $$
 declare a public.bank_accounts;
 declare new_balance bigint;
 begin
+  if not public.bank_admin_login(p_admin_code) then
+    raise exception '관리자 승인 코드가 올바르지 않습니다.';
+  end if;
+
   if p_type not in ('deposit','withdraw') or p_amount < 1 then
     raise exception '잘못된 거래입니다.';
   end if;
@@ -216,14 +224,15 @@ end;
 $$;
 
 revoke execute on function public.bank_member_login(text,text,text) from public, authenticated;
-revoke execute on function public.bank_transaction(text,text,text,bigint) from public, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint) from public, anon, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint,text) from public, authenticated;
 revoke execute on function public.bank_admin_login(text) from public, authenticated;
 revoke execute on function public.bank_admin_list(text) from public, authenticated;
 revoke execute on function public.bank_admin_add(text,text,text,text,bigint) from public, authenticated;
 revoke execute on function public.bank_admin_delete(text,text) from public, authenticated;
 
 grant execute on function public.bank_member_login(text,text,text) to anon;
-grant execute on function public.bank_transaction(text,text,text,bigint) to anon;
+grant execute on function public.bank_transaction(text,text,text,bigint,text) to anon;
 grant execute on function public.bank_admin_login(text) to anon;
 grant execute on function public.bank_admin_list(text) to anon;
 grant execute on function public.bank_admin_add(text,text,text,text,bigint) to anon;
