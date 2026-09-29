@@ -33,7 +33,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{di
 
 <section id="student" class="hidden">
 <div class="top"><a href="#" onclick="show('home');return false">← 602은행</a><b>학생용</b></div>
-<div id="studentLogin" class="panel login"><div class="mark">602</div><h2>내 계좌</h2><p class="muted">계좌번호와 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
+<div id="studentLogin" class="panel login"><div class="mark">602</div><h2>내 계좌</h2><p class="muted">계좌번호, 이름, 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="sname" placeholder="이름"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
 <div id="studentDash" class="hidden"></div>
 </section>
 
@@ -57,7 +57,7 @@ function show(id){['home','student','admin'].forEach(x=>document.getElementById(
 function msg(id,t,err=false){document.getElementById(id).innerHTML='<div class="notice '+(err?'error':'')+'">'+t+'</div>'}
 function now(){return new Date().toLocaleString('ko-KR')}
 function studentLogin(){
- const no=document.getElementById('sno').value.trim(),pin=document.getElementById('spin').value.trim(),a=data.accounts.find(x=>x.no===no&&x.pin===pin);
+ const no=document.getElementById('sno').value.trim(),name=document.getElementById('sname').value.trim(),pin=document.getElementById('spin').value.trim(),a=data.accounts.find(x=>x.no===no&&x.name===name&&x.pin===pin);
  if(!a)return msg('smsg','계좌번호 또는 고유번호가 올바르지 않습니다.',true);
  renderStudent(a)
 }
@@ -73,7 +73,7 @@ function studentTx(no,type){
  if(type==='withdraw'&&a.balance<amt)return msg('txmsg','잔액이 부족합니다.',true);
  a.balance+=type==='deposit'?amt:-amt;a.tx.unshift({type,amount:amt,date:now()});save();renderStudent(a);msg('txmsg',type==='deposit'?'입금 완료':'출금 완료')
 }
-function studentLogout(){document.getElementById('studentDash').classList.add('hidden');document.getElementById('studentLogin').classList.remove('hidden');document.getElementById('smsg').innerHTML='';document.getElementById('sno').value='';document.getElementById('spin').value=''}
+function studentLogout(){document.getElementById('studentDash').classList.add('hidden');document.getElementById('studentLogin').classList.remove('hidden');document.getElementById('smsg').innerHTML='';document.getElementById('sno').value='';document.getElementById('sname').value='';document.getElementById('spin').value=''}
 function adminLogin(){if(document.getElementById('apin').value!==data.admin)return msg('amsg','관리자 코드가 올바르지 않습니다.',true);document.getElementById('adminLogin').classList.add('hidden');renderAdmin()}
 function renderAdmin(){
  const d=document.getElementById('adminDash');d.classList.remove('hidden');let total=data.accounts.reduce((s,a)=>s+a.balance,0),all=[];data.accounts.forEach(a=>a.tx.forEach(t=>all.push({...t,name:a.name,no:a.no})));all.sort((a,b)=>b.date.localeCompare(a.date));
