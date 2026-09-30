@@ -1,4 +1,4 @@
--- 602은행 Supabase cloud database
+-- 아고라 은행 Supabase cloud database
 -- Supabase Dashboard > SQL Editor에 전체를 붙여넣고 Run 하세요.
 
 create extension if not exists pgcrypto with schema extensions;
@@ -37,7 +37,7 @@ insert into public.bank_settings(key,value)
 values ('admin_pin_hash', encode(extensions.digest('6020','sha256'),'hex'))
 on conflict (key) do nothing;
 
--- 기존 602은행 데모 회원 3명 + 앞서 만든 무작위 16개 계좌/PIN.
+-- 기존 아고라 은행 데모 회원 3명 + 앞서 만든 무작위 16개 계좌/PIN.
 -- 이미 같은 계좌번호가 있으면 건너뜁니다.
 insert into public.bank_accounts(account_no,name,pin_hash,balance) values
 ('602-184','회원1',encode(extensions.digest('7391','sha256'),'hex'),1000),
