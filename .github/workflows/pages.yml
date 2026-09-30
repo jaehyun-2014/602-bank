@@ -1,4 +1,4 @@
-name: Deploy 602은행 to GitHub Pages
+name: Deploy 아고라 은행 to GitHub Pages
 on:
   push:
     branches: [main]
