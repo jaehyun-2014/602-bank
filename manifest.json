@@ -1,6 +1,6 @@
 {
-  "name": "602은행",
-  "short_name": "602은행",
+  "name": "아고라 은행",
+  "short_name": "아고라 은행",
   "description": "우리 반 전용 가상화폐 은행",
   "start_url": "/602-bank/",
   "scope": "/602-bank/",
