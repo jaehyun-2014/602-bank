@@ -1,22 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-<defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0" stop-color="#10243f"/>
-    <stop offset="1" stop-color="#183b63"/>
-  </linearGradient>
-  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0" stop-color="#f7d77a"/>
-    <stop offset="1" stop-color="#c99b35"/>
-  </linearGradient>
-</defs>
-<rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<rect x="42" y="42" width="428" height="428" rx="86" fill="none" stroke="#315777" stroke-width="4"/>
-<circle cx="256" cy="252" r="151" fill="#0c1d33" stroke="#e1bd5b" stroke-width="12"/>
-<circle cx="256" cy="252" r="124" fill="none" stroke="#6d8aa4" stroke-width="3" opacity=".65"/>
-<path d="M166 213 L256 148 L346 213" fill="none" stroke="url(#gold)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M183 220 H329" stroke="#f0d27a" stroke-width="13" stroke-linecap="round"/>
-<path d="M195 229 V309 M239 229 V309 M273 229 V309 M317 229 V309" stroke="#e7c76a" stroke-width="15" stroke-linecap="round"/>
-<path d="M174 318 H338" stroke="#f0d27a" stroke-width="15" stroke-linecap="round"/>
-<path d="M205 337 H307" stroke="#718ba2" stroke-width="7" stroke-linecap="round"/>
-<text x="256" y="408" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="800" letter-spacing="5" fill="#f4f7fb">AGORA</text>
+<rect width="512" height="512" fill="#40aee9"/>
+<path d="M57 179 L256 47 L455 179 Q459 182 456 188 Q454 193 447 193 H65 Q58 193 56 187 Q54 183 57 179Z" fill="#fff"/>
+<rect x="99" y="201" width="52" height="144" rx="25" fill="#fff"/>
+<rect x="170" y="201" width="52" height="144" rx="25" fill="#fff"/>
+<rect x="241" y="201" width="52" height="144" rx="25" fill="#fff"/>
+<rect x="312" y="201" width="52" height="144" rx="25" fill="#fff"/>
+<rect x="383" y="201" width="52" height="144" rx="25" fill="#fff"/>
+<path d="M75 352 H437 Q446 352 451 361 L471 395 Q475 403 467 407 H45 Q37 403 41 395 L61 361 Q66 352 75 352Z" fill="#fff"/>
+<text x="256" y="468" text-anchor="middle" font-family="Arial,'Noto Sans KR',sans-serif" font-size="57" font-weight="900" letter-spacing="1" fill="#050505">아고라</text>
 </svg>
