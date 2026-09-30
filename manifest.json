@@ -5,8 +5,8 @@
   "start_url": "/602-bank/",
   "scope": "/602-bank/",
   "display": "standalone",
-  "background_color": "#eef4ff",
-  "theme_color": "#155eef",
+  "background_color": "#10243f",
+  "theme_color": "#10243f",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [
