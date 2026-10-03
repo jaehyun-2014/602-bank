@@ -420,7 +420,9 @@ function renderAdmin(data){
  '<div class="panel"><h2>전체 거래내역</h2>'+(
  all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join('')
  :'<p class="muted">거래내역이 없습니다.</p>')+'</div>'+
- '<div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+"'<button class=\"btn ghost\" onclick=\"adminLogout()\">잠금</button>';"
+ '<div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+
+ '<button class="btn ghost" onclick="adminLogout()">잠금</button>';
+ loadAdminLoans();
 }
 
 async function addAccount(){
@@ -521,7 +523,7 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=10', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=11', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
