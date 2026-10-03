@@ -72,12 +72,14 @@ security definer
 set search_path=''
 as $$
 declare a public.bank_accounts;
+declare has_member boolean := false;
 begin
   if coalesce(p_no,'')<>'' then
     select * into a from public.bank_accounts
     where account_no=p_no
       and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
     if not found then raise exception '주식 로그인에 실패했습니다.'; end if;
+    has_member := true;
   end if;
 
   return jsonb_build_object(
@@ -97,7 +99,7 @@ begin
             limit 20
           ) hx
         ),'[]'::jsonb),
-        'shares',case when found and a.id is not null then coalesce((
+        'shares',case when has_member then coalesce((
           select h.shares from public.agora_stock_holdings h
           where h.account_id=a.id and h.stock_id=s.id
         ),0) else 0 end,
