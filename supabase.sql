@@ -208,6 +208,109 @@ begin
 end;
 $$;
 
+create or replace function public.bank_admin_update(
+  p_code text, p_no text, p_name text, p_pin text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare a public.bank_accounts;
+begin
+  if not public.bank_admin_login(p_code) then
+    raise exception '관리자 코드가 올바르지 않습니다.';
+  end if;
+  if p_name is null or length(trim(p_name))=0 then
+    raise exception '이름을 입력하세요.';
+  end if;
+  if p_no !~ '^602-[0-9]{3}
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.bank_admin_login(p_code) then
+    raise exception '관리자 코드가 올바르지 않습니다.';
+  end if;
+  delete from public.bank_accounts where account_no=p_no;
+  return found;
+end;
+$$;
+
+revoke execute on function public.bank_member_login(text,text,text) from public, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint) from public, anon, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint,text) from public, authenticated;
+revoke execute on function public.bank_admin_login(text) from public, authenticated;
+revoke execute on function public.bank_admin_list(text) from public, authenticated;
+revoke execute on function public.bank_admin_add(text,text,text,text,bigint) from public, authenticated;
+revoke execute on function public.bank_admin_update(text,text,text,text) from public, authenticated;
+revoke execute on function public.bank_admin_delete(text,text) from public, authenticated;
+
+grant execute on function public.bank_member_login(text,text,text) to anon;
+grant execute on function public.bank_transaction(text,text,text,bigint,text) to anon;
+grant execute on function public.bank_admin_login(text) to anon;
+grant execute on function public.bank_admin_list(text) to anon;
+grant execute on function public.bank_admin_add(text,text,text,text,bigint) to anon;
+grant execute on function public.bank_admin_update(text,text,text,text) to anon;
+grant execute on function public.bank_admin_delete(text,text) to anon;
+
+-- PostgREST schema cache 새로고침
+notify pgrst, 'reload schema';
+ then
+    raise exception '계좌번호 형식이 올바르지 않습니다.';
+  end if;
+  if p_pin !~ '^[0-9]{4,8}
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.bank_admin_login(p_code) then
+    raise exception '관리자 코드가 올바르지 않습니다.';
+  end if;
+  delete from public.bank_accounts where account_no=p_no;
+  return found;
+end;
+$$;
+
+revoke execute on function public.bank_member_login(text,text,text) from public, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint) from public, anon, authenticated;
+revoke execute on function public.bank_transaction(text,text,text,bigint,text) from public, authenticated;
+revoke execute on function public.bank_admin_login(text) from public, authenticated;
+revoke execute on function public.bank_admin_list(text) from public, authenticated;
+revoke execute on function public.bank_admin_add(text,text,text,text,bigint) from public, authenticated;
+revoke execute on function public.bank_admin_delete(text,text) from public, authenticated;
+
+grant execute on function public.bank_member_login(text,text,text) to anon;
+grant execute on function public.bank_transaction(text,text,text,bigint,text) to anon;
+grant execute on function public.bank_admin_login(text) to anon;
+grant execute on function public.bank_admin_list(text) to anon;
+grant execute on function public.bank_admin_add(text,text,text,text,bigint) to anon;
+grant execute on function public.bank_admin_delete(text,text) to anon;
+
+-- PostgREST schema cache 새로고침
+notify pgrst, 'reload schema';
+ then
+    raise exception '고유번호는 4~8자리 숫자여야 합니다.';
+  end if;
+
+  update public.bank_accounts
+  set name=trim(p_name),
+      pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex')
+  where account_no=p_no
+  returning * into a;
+
+  if not found then
+    raise exception '존재하지 않는 계좌입니다.';
+  end if;
+
+  return jsonb_build_object(
+    'id',a.id,'no',a.account_no,'name',a.name,'balance',a.balance
+  );
+end;
+$;
+
 create or replace function public.bank_admin_delete(p_code text, p_no text)
 returns boolean
 language plpgsql
