@@ -121,7 +121,7 @@ function renderMarket(){
  if(!marketItems.length){grid.innerHTML='<div class="market-empty">등록된 상품이 없습니다.</div>';return;}
  grid.innerHTML=marketItems.map(item=>{
    const preview=item.preview_url?'<img src="'+esc(item.preview_url)+'" alt="">':'<div class="preview-text">'+esc(item.category)+'</div>';
-   return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="seller-box">판매자 · '+esc(item.seller_name)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">미리보기</button><button class="btn like '+(item.liked?'liked':'')+'" onclick="toggleLike(\''+esc(item.id)+'\')">좋아요</button></div><button class="btn blue" style="width:100%;margin-top:8px" onclick="addToCart(\''+esc(item.id)+'\')">장바구니 담기</button></div></article>';
+   return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="seller-box">판매자 · '+esc(item.seller_name)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">미리보기</button><button class="btn like '+(item.liked?'liked':'')+'" onclick="toggleLike(\''+esc(item.id)+'\')">좋아요</button></div><div class="market-actions"><button class="btn blue" onclick="purchaseItem(\''+esc(item.id)+'\')">구매</button><button class="btn ghost" onclick="addToCart(\''+esc(item.id)+'\')">장바구니</button></div></div></article>';
  }).join('');
 }
 
@@ -144,6 +144,19 @@ async function toggleLike(id){
  if(!currentMember){openMarketLogin();return;}
  const {data,error}=await supabaseClient.rpc('market_toggle_like',{p_no:currentMember.no,p_pin:currentMember.pin,p_item_id:id});
  if(error||!data)return msg('marketNotice',error?.message||'좋아요 처리에 실패했습니다.',true);
+ await loadMarket();
+}
+
+async function purchaseItem(id){
+ if(!currentMember){openMarketLogin();return;}
+ const item=marketItems.find(x=>String(x.id)===String(id));
+ if(!item)return;
+ if(!confirm(item.title+'을(를) '+Number(item.price).toLocaleString()+'공에 구매할까요?'))return;
+ const {data,error}=await supabaseClient.rpc('market_purchase_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_item_id:id});
+ if(error||!data)return msg('marketNotice',error?.message||'구매에 실패했습니다.',true);
+ alert('구매 완료! '+Number(data.price).toLocaleString()+'공이 결제되었습니다.');
+ await refreshMember();
+ if(data.download_url)window.open(data.download_url,'_blank','noopener');
  await loadMarket();
 }
 
