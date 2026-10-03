@@ -718,9 +718,8 @@ function historyHTML(tx){
  return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+esc(t.date)+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'
 }
 </script>
-</body>
-</html>
-<script>
+
+
 if (supabaseReady) loadApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -730,3 +729,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+</body>
+</html>
