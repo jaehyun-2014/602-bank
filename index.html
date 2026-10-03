@@ -92,19 +92,26 @@ let currentMember=null;
 let adminCode=null;
 
 // 관리자에게 허가된 광고만 이 목록에 추가하면 홈 화면 하단에 표시됩니다.
-const AGORA_APPROVED_ADS=[];
+let AGORA_APPROVED_ADS=[];
+async function loadApprovedAds(){
+ const el=document.getElementById("approvedAds");
+ if(!el)return;
+ const {data,error}=await supabaseClient.rpc("ad_browse");
+ if(error){console.warn("광고 불러오기 실패:",error);el.innerHTML="";return;}
+ AGORA_APPROVED_ADS=data?.ads||[];
+ renderApprovedAds();
+}
 function renderApprovedAds(){
  const el=document.getElementById("approvedAds");
  if(!el)return;
  const ads=AGORA_APPROVED_ADS.filter(a=>a&&a.approved);
  if(!ads.length){el.innerHTML="";return;}
- el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>허가 광고</b></div><div class="ad-list">' + ads.map(a=>{
+ el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>허가 광고</b></div><div class="ad-list">'+ads.map(a=>{
    const href=esc(a.url||"#");
-   const target=a.url?" target="_blank" rel="noopener noreferrer"":"";
+   const target=a.url?" target="_blank" rel="noopener noreferrer":"";
    return '<a class="ad-card" href="'+href+'"'+target+'><span class="ad-label">허가 광고</span><div class="ad-title">'+esc(a.title||"광고")+'</div><div class="ad-desc">'+esc(a.description||"")+'</div><div class="ad-sponsor">'+esc(a.sponsor||"광고주")+'</div></a>';
  }).join("")+"</div>";
 }
-
 function show(id){['home','student','market','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
 const AGORA_THEMES={blue:'기본 블루',dark:'다크',green:'그린',retro:'레트로',xp:'Windows XP',reset:'기본 블루'};
 function applyAgoraTheme(name){
@@ -581,9 +588,10 @@ function renderAdmin(data){
  '<div class="panel"><h2>전체 거래내역</h2>'+(
  all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join('')
  :'<p class="muted">거래내역이 없습니다.</p>')+'</div>'+
- '<div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+
+ '<div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+ '<div class="panel"><h2>광고 관리</h2><p class="muted">광고를 등록하고 허가 여부를 관리합니다. 허가된 광고만 홈 화면 맨 아래에 표시됩니다.</p><div class="form-grid"><input id="adTitle" placeholder="광고 제목"><input id="adSponsor" placeholder="광고주"><input id="adUrl" placeholder="광고 링크 https://..."><input id="adDescription" placeholder="광고 설명"></div><button class="btn blue" onclick="adminAddAd()">광고 등록</button><div id="adMsg"></div><div id="adminAdList" style="margin-top:14px"><p class="muted">광고 정보를 불러오는 중...</p></div></div>'+
  '<button class="btn ghost" onclick="adminLogout()">잠금</button>';
  loadAdminLoans();
+ loadAdminAds();
 }
 
 async function addAccount(){
@@ -675,6 +683,37 @@ async function decideLoan(id,approve){
  await adminRefresh();
 }
 
+
+async function loadAdminAds(){
+ const el=document.getElementById('adminAdList');if(!el||!adminCode)return;
+ const {data,error}=await supabaseClient.rpc('ad_admin_list',{p_code:adminCode});
+ if(error||!data){el.innerHTML='<div class="notice error">'+esc(error?.message||'광고 정보를 불러오지 못했습니다.')+'</div>';return;}
+ const ads=data.ads||[];
+ if(!ads.length){el.innerHTML='<p class="muted">등록된 광고가 없습니다.</p>';return;}
+ el.innerHTML=ads.map(a=>'<div class="account"><div><b>'+esc(a.title)+'</b><small>'+esc(a.sponsor||'광고주')+' · '+esc(a.description||'')+' · '+esc(a.url||'')+'</small></div><div class="account-actions"><button class="'+(a.approved?'edit':'ghost')+'" onclick="adminToggleAd(\''+esc(a.id)+'\','+(!a.approved)+')">'+(a.approved?'허가됨':'허가하기')+'</button><button class="danger" onclick="adminDeleteAd(\''+esc(a.id)+'\')">삭제</button></div></div>').join('');
+}
+async function adminAddAd(){
+ if(!adminCode)return;
+ const title=document.getElementById('adTitle').value.trim(),sponsor=document.getElementById('adSponsor').value.trim(),url=document.getElementById('adUrl').value.trim(),description=document.getElementById('adDescription').value.trim();
+ if(!title||!sponsor||!url)return msg('adMsg','광고 제목, 광고주, 링크를 모두 입력하세요.',true);
+ const {data,error}=await supabaseClient.rpc('ad_admin_add',{p_code:adminCode,p_title:title,p_description:description,p_sponsor:sponsor,p_url:url});
+ if(error||!data)return msg('adMsg',error?.message||'광고 등록에 실패했습니다.',true);
+ document.getElementById('adTitle').value='';document.getElementById('adSponsor').value='';document.getElementById('adUrl').value='';document.getElementById('adDescription').value='';
+ msg('adMsg','광고가 등록되었습니다. 현재는 허가 전 상태입니다.');
+ await loadAdminAds();
+}
+async function adminToggleAd(id,approved){
+ const {data,error}=await supabaseClient.rpc('ad_admin_set_approved',{p_code:adminCode,p_id:id,p_approved:approved});
+ if(error||!data)return alert(error?.message||'광고 허가 상태 변경에 실패했습니다.');
+ await loadAdminAds();await loadApprovedAds();
+}
+async function adminDeleteAd(id){
+ if(!confirm('이 광고를 삭제할까요?'))return;
+ const {data,error}=await supabaseClient.rpc('ad_admin_delete',{p_code:adminCode,p_id:id});
+ if(error||!data)return alert(error?.message||'광고 삭제에 실패했습니다.');
+ await loadAdminAds();await loadApprovedAds();
+}
+
 function historyHTML(tx){
  return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+esc(t.date)+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'
 }
@@ -682,7 +721,7 @@ function historyHTML(tx){
 </body>
 </html>
 <script>
-renderApprovedAds();
+if (supabaseReady) loadApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js?v=15', {updateViaCache: 'none'}).catch(err => {
