@@ -263,7 +263,7 @@ declare s public.agora_stocks;
 declare new_price bigint;
 begin
   if not public.bank_admin_login(p_code) then raise exception '관리자 코드가 올바르지 않습니다.'; end if;
-  if p_percent is null or p_percent < -90 or p_percent > 500 then raise exception '등락률은 -90%에서 500% 사이입니다.'; end if;
+  if p_percent is null or p_percent < -90 or p_percent > 500 then raise exception '등락률은 -90%%에서 500%% 사이입니다.'; end if;
 
   select * into s from public.agora_stocks where id=p_stock_id for update;
   if not found then raise exception '주식을 찾을 수 없습니다.'; end if;
