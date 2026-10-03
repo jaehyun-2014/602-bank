@@ -724,7 +724,7 @@ function historyHTML(tx){
 if (supabaseReady) loadApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=15', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=16', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
