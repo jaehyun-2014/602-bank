@@ -332,8 +332,12 @@ async function uploadMarketFile(file,folder){
  if(file.size>max)throw new Error('파일은 10MB 이하만 올릴 수 있습니다.');
  const safe=file.name.replace(/[^0-9A-Za-z가-힣._-]/g,'_');
  const path=folder+'/'+crypto.randomUUID()+'-'+safe;
- const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||'application/octet-stream'});
- if(error)throw error;
+ const contentType=file.type||'application/octet-stream';
+ const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false,contentType});
+ if(error){
+   console.error('market-files upload error:',error);
+   throw new Error('파일 업로드 실패: '+(error.message||'Storage 오류')+' ['+contentType+']');
+ }
  const pub=supabaseClient.storage.from('market-files').getPublicUrl(data.path);
  return pub.data.publicUrl;
 }
@@ -391,7 +395,7 @@ function openNewShopForm(){
 function openMarketProductForm(shopId){
  const area=document.getElementById('newShopArea')||document.getElementById('shopProductArea');
  if(!area)return;
- area.innerHTML='<div class="panel" style="margin-top:18px;padding:18px"><h3 style="margin-top:0">상품 등록</h3><p class="market-small">선택한 가게에 상품을 등록합니다.</p><input id="sellShopId" type="hidden" value="'+esc(shopId)+'"><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreviewFile" type="file" accept="image/*"></div><div class="market-small">미리보기 이미지</div><input id="sellPreview" placeholder="또는 미리보기 이미지 URL"><input id="sellFile" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.html,.css,.js,image/*"><div class="market-small">판매할 파일 (최대 10MB)</div><input id="sellUrl" placeholder="또는 기존 상품/다운로드 링크"><input id="sellDesc" placeholder="짧은 설명"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">파일 올리고 상품 등록</button><div id="sellMsg"></div></div>';
+ area.innerHTML='<div class="panel" style="margin-top:18px;padding:18px"><h3 style="margin-top:0">상품 등록</h3><p class="market-small">선택한 가게에 상품을 등록합니다.</p><input id="sellShopId" type="hidden" value="'+esc(shopId)+'"><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreviewFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></div><div class="market-small">미리보기 이미지</div><input id="sellPreview" placeholder="또는 미리보기 이미지 URL"><input id="sellFile" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.html,.css,.js,.png,.jpg,.jpeg,.webp,.gif"><div class="market-small">판매할 파일 (최대 10MB)</div><input id="sellUrl" placeholder="또는 기존 상품/다운로드 링크"><input id="sellDesc" placeholder="짧은 설명"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">파일 올리고 상품 등록</button><div id="sellMsg"></div></div>';
  area.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
