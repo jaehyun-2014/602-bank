@@ -71,7 +71,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 <div class="grid">
 <div class="panel"><div class="eyebrow">BANKING</div><h2>아고라 은행</h2><p class="muted">계좌 조회, 입·출금, 회원 간 송금과 송금 받기를 이용합니다.</p><button class="btn blue" onclick="show('student')">은행 들어가기</button></div>
 <div class="panel"><div class="eyebrow">MARKET</div><h2>아고라 시장</h2><p class="muted">회원이 만든 템플릿과 자료를 등록하고 공으로 사고팔 수 있습니다.</p><button class="btn blue" onclick="show('market');loadMarket()">시장 들어가기</button></div>
-<div class="panel"><div class="eyebrow">STOCK MARKET</div><h2>아고라 주식</h2><p class="muted">가상 기업의 주식을 공으로 사고팔고, 등락률과 투자 손익을 확인합니다.</p><button class="btn blue" onclick="show('stock');loadStocks()">주식 들어가기</button></div>
+<div class="panel"><div class="eyebrow">STOCK MARKET</div><h2>아고라 주식</h2><p class="muted">실제로 존재하는 상장기업의 주식을 기반으로, 아고라의 가상 화폐 공으로 사고팔고 등락률과 투자 손익을 확인합니다.</p><button class="btn blue" onclick="show('stock');loadStocks()">주식 들어가기</button></div>
 </div>
 <div id="approvedAds" class="approved-ads"></div>
 </section>
@@ -89,7 +89,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 
 <section id="stock" class="hidden">
 <div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>아고라 주식</b></div>
-<div class="panel"><div class="eyebrow">AGORA STOCK MARKET</div><h1 style="margin:5px 0">아고라 주식</h1><p class="muted">학급용 가상 주식시장입니다. 주식 가격은 관리자가 등락률을 조절하며, 매수·매도 금액은 모두 공으로 처리됩니다.</p>
+<div class="panel"><div class="eyebrow">AGORA STOCK MARKET</div><h1 style="margin:5px 0">아고라 주식</h1><p class="muted">실제 상장기업을 종목으로 사용하는 학급용 가상 주식시장입니다. 시세는 아고라 내부에서 관리하며, 매수·매도 금액은 모두 공으로 처리됩니다.</p>
 <div class="actions" style="margin-top:18px"><button class="btn blue" onclick="openStockLogin()">주식 로그인</button><button class="btn ghost" onclick="loadStocks()">새로고침</button></div>
 <div id="stockAccount" class="market-small" style="margin-top:10px"></div></div>
 <div id="stockNotice"></div>
