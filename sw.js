@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agora-capital-shell-v13';
+const CACHE_NAME = 'agora-capital-shell-v16';
 const APP_SHELL = [
   '/602-bank/',
   '/602-bank/index.html',
