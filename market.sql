@@ -590,14 +590,13 @@ begin
               limit 1
             )
         )
-      )
+      ) order by m.created_at desc)
       from public.market_items m
       join public.bank_accounts a on a.id=m.seller_account_id
       left join public.market_shops sh on sh.owner_account_id=a.id and sh.active=true
       where m.active=true
         and (p_category='all' or m.category=p_category)
-      order by m.created_at desc
-    )),'[]'::jsonb)
+    ),'[]'::jsonb)
   );
 end;
 $$;
