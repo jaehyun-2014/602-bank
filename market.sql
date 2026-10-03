@@ -77,7 +77,7 @@ begin
           'liked',exists(select 1 from public.market_likes l2 where l2.item_id=m.id and l2.account_id=(select id from public.bank_accounts where account_no=p_no and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex') limit 1))
         )
         order by m.created_at desc
-      )
+      ))
       from public.market_items m
       join public.bank_accounts a on a.id=m.seller_account_id
       where m.active=true
@@ -597,7 +597,7 @@ begin
       where m.active=true
         and (p_category='all' or m.category=p_category)
       order by m.created_at desc
-    )),'[]'::jsonb)
+    ),'[]'::jsonb)
   );
 end;
 $$;
