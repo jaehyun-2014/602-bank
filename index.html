@@ -108,7 +108,7 @@ function marketCategory(category,button){
 
 async function loadMarket(){
  if(!requireSupabase('marketNotice'))return;
- const {data,error}=await supabaseClient.rpc('market_browse',{p_category:marketCategoryValue});
+ const {data,error}=await supabaseClient.rpc('market_browse',{p_category:marketCategoryValue,p_no:currentMember?.no||'',p_pin:currentMember?.pin||''});
  if(error||!data)return msg('marketNotice',error?.message||'시장 상품을 불러오지 못했습니다.',true);
  marketItems=data.items||[];
  renderMarket();
@@ -443,7 +443,7 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=6', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=7', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
