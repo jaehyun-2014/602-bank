@@ -597,10 +597,10 @@ begin
       where m.active=true
         and (p_category='all' or m.category=p_category)
       order by m.created_at desc
-    ),'[]'::jsonb)
+    )),'[]'::jsonb)
   );
 end;
-$$;
+$;
 
 revoke execute on function public.market_my_shop(text,text) from public,authenticated;
 revoke execute on function public.market_create_shop(text,text,text,text) from public,authenticated;
