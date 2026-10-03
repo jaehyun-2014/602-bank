@@ -405,7 +405,7 @@ values (
 on conflict (id) do update set
   public = true,
   file_size_limit = 10485760,
-  allowed_mime_types = excluded.allowed_mime_types;
+  allowed_mime_types = null;
 
 drop policy if exists "market files public read" on storage.objects;
 drop policy if exists "market files anon upload" on storage.objects;
@@ -881,4 +881,15 @@ $$;
 revoke execute on function public.market_delete_shop(text,text,uuid) from public,authenticated;
 grant execute on function public.market_delete_shop(text,text,uuid) to anon;
 grant usage on schema public to anon;
+notify pgrst,'reload schema';
+
+
+-- 업로드 MIME 타입 제한 해제
+-- 이미지/JPEG/JPG/PNG/GIF/WebP, WAV 등 브라우저가 보내는 다양한 MIME 타입을 허용합니다.
+update storage.buckets
+set allowed_mime_types = null,
+    public = true,
+    file_size_limit = 10485760
+where id = 'market-files';
+
 notify pgrst,'reload schema';
