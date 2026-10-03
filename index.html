@@ -284,8 +284,9 @@ function renderStudent(){
   <div id="transferMsg"></div>
  </div>
  <div class="panel"><h2>송금 대기 / 내 송금내역</h2><div id="transferList">${transferHTML(currentMember.transfers||[],currentMember.account.id)}</div></div>
- <div class="panel"><h2>내 거래내역</h2><div id="history">${historyHTML(currentMember.tx)}</div></div>
+ <div class="panel"><h2>아고라 은행 대출</h2><p class="muted">대출을 신청하면 관리자 승인 후 공이 계좌에 입금됩니다. 최대 10,000공까지 신청할 수 있습니다.</p><div class="two"><input id="loanAmount" type="number" min="1" max="10000" placeholder="대출 금액"><input id="loanPurpose" placeholder="대출 사유"></div><button class="btn blue" style="width:100%" onclick="applyLoan()">대출 신청</button><div id="loanMsg"></div><div id="loanList" style="margin-top:15px"><p class="muted">대출 정보를 불러오는 중...</p></div></div><div class="panel"><h2>내 거래내역</h2><div id="history">${historyHTML(currentMember.tx)}</div></div>
  <button class="btn ghost" onclick="studentLogout()">나가기</button>`;
+ loadMyLoans();
 }
 
 async function studentTx(type){
@@ -419,7 +420,7 @@ function renderAdmin(data){
  '<div class="panel"><h2>전체 거래내역</h2>'+(
  all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join('')
  :'<p class="muted">거래내역이 없습니다.</p>')+'</div>'+
- '<button class="btn ghost" onclick="adminLogout()">잠금</button>';
+ '<div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+"'<button class=\"btn ghost\" onclick=\"adminLogout()\">잠금</button>';"
 }
 
 async function addAccount(){
@@ -464,6 +465,53 @@ function adminLogout(){
  document.getElementById('apin').value='';
 }
 
+
+async function loadMyLoans(){
+ const el=document.getElementById('loanList'); if(!el||!currentMember)return;
+ const {data,error}=await supabaseClient.rpc('bank_loan_my',{p_no:currentMember.no,p_pin:currentMember.pin});
+ if(error||!data){el.innerHTML='<div class="notice error">'+esc(error?.message||'대출 정보를 불러오지 못했습니다.')+'</div>';return;}
+ const loans=data.loans||[];
+ if(!loans.length){el.innerHTML='<p class="muted">대출 내역이 없습니다.</p>';return;}
+ el.innerHTML=loans.map(l=>{
+  const status=l.status==='pending'?'심사 대기':l.status==='approved'?'상환 중':l.status==='rejected'?'거절됨':'상환 완료';
+  const action=l.status==='approved'?'<div class="two" style="margin-top:10px"><input id="repay_'+esc(l.id)+'" type="number" min="1" max="'+Number(l.remaining)+'" placeholder="상환 금액"><button class="btn green" onclick="repayLoan(\\''+esc(l.id)+'\\','+Number(l.remaining)+')">상환하기</button></div>':'';
+  return '<div class="account"><div><b>'+Number(l.amount).toLocaleString()+'공 대출</b><small>'+esc(l.purpose||'사유 없음')+' · '+esc(status)+'</small></div><div style="text-align:right"><strong>'+Number(l.remaining).toLocaleString()+'공</strong><small>남은 원금</small></div></div>'+action;
+ }).join('');
+}
+async function applyLoan(){
+ const amount=Number(document.getElementById('loanAmount').value),purpose=document.getElementById('loanPurpose').value.trim();
+ if(!Number.isInteger(amount)||amount<1||amount>10000)return msg('loanMsg','대출 금액은 1~10,000공의 정수로 입력하세요.',true);
+ const {data,error}=await supabaseClient.rpc('bank_loan_apply',{p_no:currentMember.no,p_pin:currentMember.pin,p_amount:amount,p_purpose:purpose});
+ if(error||!data)return msg('loanMsg',error?.message||'대출 신청에 실패했습니다.',true);
+ document.getElementById('loanAmount').value='';document.getElementById('loanPurpose').value='';
+ msg('loanMsg','대출 신청이 접수되었습니다. 관리자 승인을 기다려 주세요.');await loadMyLoans();
+}
+async function repayLoan(id,max){
+ const amount=Number(document.getElementById('repay_'+id)?.value);
+ if(!Number.isInteger(amount)||amount<1||amount>max)return alert('1공 이상, 남은 대출금 이하로 입력하세요.');
+ const {data,error}=await supabaseClient.rpc('bank_loan_repay',{p_no:currentMember.no,p_pin:currentMember.pin,p_loan_id:id,p_amount:amount});
+ if(error||!data)return alert(error?.message||'대출 상환에 실패했습니다.');
+ await refreshMember();renderStudent();
+}
+async function loadAdminLoans(){
+ const el=document.getElementById('adminLoanList');if(!el||!adminCode)return;
+ const {data,error}=await supabaseClient.rpc('bank_admin_loan_list',{p_code:adminCode});
+ if(error||!data){el.innerHTML='<div class="notice error">'+esc(error?.message||'대출 정보를 불러오지 못했습니다.')+'</div>';return;}
+ const loans=data.loans||[];
+ if(!loans.length){el.innerHTML='<p class="muted">대출 신청이 없습니다.</p>';return;}
+ el.innerHTML=loans.map(l=>{
+  const status=l.status==='pending'?'심사 대기':l.status==='approved'?'상환 중':l.status==='rejected'?'거절됨':'상환 완료';
+  const actions=l.status==='pending'?'<div class="account-actions"><button class="edit" onclick="decideLoan(\\''+esc(l.id)+'\\',true)">승인</button><button class="danger" onclick="decideLoan(\\''+esc(l.id)+'\\',false)">거절</button></div>':'';
+  return '<div class="account"><div><b>'+esc(l.name)+' · '+esc(l.no)+'</b><small>'+Number(l.amount).toLocaleString()+'공 · '+esc(l.purpose||'사유 없음')+' · '+esc(l.requested_at)+'</small></div><div><strong>'+Number(l.remaining).toLocaleString()+'공</strong><small>'+esc(status)+'</small></div>'+actions+'</div>';
+ }).join('');
+}
+async function decideLoan(id,approve){
+ if(!confirm(approve?'승인하면 대출금이 회원 계좌에 입금됩니다. 승인할까요?':'이 대출 신청을 거절할까요?'))return;
+ const {data,error}=await supabaseClient.rpc('bank_admin_loan_decide',{p_code:adminCode,p_loan_id:id,p_approve:approve});
+ if(error||!data)return msg('amsg',error?.message||'대출 처리에 실패했습니다.',true);
+ await adminRefresh();
+}
+
 function historyHTML(tx){
  return tx.length?tx.map(t=>'<div class="tx"><span><b>'+(t.type==='deposit'?'입금':'출금')+'</b><small>'+esc(t.date)+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join(''):'<p class="muted">거래내역이 없습니다.</p>'
 }
@@ -473,7 +521,7 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=8', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=9', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
