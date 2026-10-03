@@ -376,4 +376,50 @@ grant execute on function public.market_purchase_cart(text,text) to anon;
 
 grant usage on schema public to anon;
 
+
+-- 실제 상품 파일 업로드용 Supabase Storage
+-- 브라우저에서 파일을 직접 올리고 공개 다운로드 URL을 상품에 저장합니다.
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values (
+  'market-files',
+  'market-files',
+  true,
+  10485760,
+  array[
+    'image/*',
+    'application/pdf',
+    'application/zip',
+    'text/plain',
+    'text/html',
+    'text/css',
+    'text/javascript',
+    'application/javascript',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ]::text[]
+)
+on conflict (id) do update set
+  public = true,
+  file_size_limit = 10485760,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "market files public read" on storage.objects;
+drop policy if exists "market files anon upload" on storage.objects;
+
+create policy "market files public read"
+on storage.objects
+for select
+to anon
+using (bucket_id = 'market-files');
+
+create policy "market files anon upload"
+on storage.objects
+for insert
+to anon
+with check (bucket_id = 'market-files');
+
 notify pgrst,'reload schema';
