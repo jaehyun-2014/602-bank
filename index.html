@@ -71,7 +71,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 <div class="grid">
 <div class="panel"><div class="eyebrow">BANKING</div><h2>아고라 은행</h2><p class="muted">계좌 조회, 입·출금, 회원 간 송금과 송금 받기를 이용합니다.</p><button class="btn blue" onclick="show('student')">은행 들어가기</button></div>
 <div class="panel"><div class="eyebrow">MARKET</div><h2>아고라 시장</h2><p class="muted">회원이 만든 템플릿과 자료를 등록하고 공으로 사고팔 수 있습니다.</p><button class="btn blue" onclick="show('market');loadMarket()">시장 들어가기</button></div>
-<div class="panel"><div class="eyebrow">STOCK MARKET</div><h2>아고라 주식</h2><p class="muted">실제로 존재하는 상장기업의 주식을 기반으로, 아고라의 가상 화폐 공으로 사고팔고 등락률과 투자 손익을 확인합니다.</p><button class="btn blue" onclick="show('stock');loadStocks()">주식 들어가기</button></div>
+<div class="panel"><div class="eyebrow">STOCK MARKET</div><h2>아고라 주식</h2><p class="muted">아고라 시장의 실제 가게를 바탕으로 가게 주식을 사고팔고, 활동에 따른 주가 변동과 투자 손익을 확인합니다.</p><button class="btn blue" onclick="show('stock');loadStocks()">주식 들어가기</button></div>
 </div>
 <div id="approvedAds" class="approved-ads"></div>
 </section>
@@ -89,11 +89,11 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 
 <section id="stock" class="hidden">
 <div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>아고라 주식</b></div>
-<div class="panel"><div class="eyebrow">AGORA STOCK MARKET</div><h1 style="margin:5px 0">아고라 주식</h1><p class="muted">실제 상장기업을 종목으로 사용하는 학급용 가상 주식시장입니다. 시세는 아고라 내부에서 관리하며, 매수·매도 금액은 모두 공으로 처리됩니다.</p>
+<div class="panel"><div class="eyebrow">AGORA STOCK MARKET</div><h1 style="margin:5px 0">아고라 주식</h1><p class="muted">아고라 시장에 있는 가게를 종목으로 사용하는 학급용 가상 주식시장입니다. 가게의 판매·상품·좋아요 활동에 따라 주가가 움직이며, 매수·매도는 모두 공으로 처리됩니다.</p>
 <div class="actions" style="margin-top:18px"><button class="btn blue" onclick="openStockLogin()">주식 로그인</button><button class="btn ghost" onclick="loadStocks()">새로고침</button></div>
 <div id="stockAccount" class="market-small" style="margin-top:10px"></div></div>
 <div id="stockNotice"></div>
-<div class="panel"><div class="top"><div><h2 style="margin:0">시장 현황</h2><p class="muted" style="margin:5px 0 0">그래프는 최근 가격을 기준으로 등락률(%)을 표시합니다.</p></div></div><div id="stockGrid" class="stock-grid"><div class="market-empty">주식 정보를 불러오는 중...</div></div></div>
+<div class="panel"><div class="top"><div><h2 style="margin:0">시장 현황</h2><p class="muted" style="margin:5px 0 0">각 종목은 아고라 시장의 가게입니다. 판매·상품·좋아요 활동이 주가에 반영됩니다.</p></div></div><div id="stockGrid" class="stock-grid"><div class="market-empty">주식 정보를 불러오는 중...</div></div></div>
 <div class="panel"><h2>내 투자 현황</h2><div id="stockPortfolio"><p class="muted">로그인하면 보유 주식과 손익이 표시됩니다.</p></div></div>
 <div class="panel"><h2>내 주식 거래내역</h2><div id="stockTrades"><p class="muted">로그인하면 거래내역을 확인할 수 있습니다.</p></div></div>
 </section>
@@ -536,7 +536,7 @@ function renderStocks(){
    const ch=Number(s.change_percent||0),cls=stockChangeClass(ch);
    const holding=Number(s.shares||0);
    const value=holding*Number(s.price);
-   return '<article class="stock-card"><div class="stock-head"><div><div class="stock-symbol">'+esc(s.symbol)+'</div><div class="stock-name">'+esc(s.name)+'</div><div class="muted">'+esc(s.description||'')+'</div></div><div style="text-align:right"><div class="stock-price">'+Number(s.price).toLocaleString()+'공</div><div class="stock-change '+cls+'">'+stockChangeText(ch)+'</div></div></div><div class="stock-chart">'+stockChartSVG(s.history)+'</div><div class="stock-chart-label"><span>최근 변동</span><span>등락률 기준</span></div><div class="stock-trade-row"><button class="btn blue" onclick="openStockTrade(\''+esc(s.id)+'\',\'buy\')">매수</button><input id="stockQty-'+esc(s.id)+'" type="number" min="1" step="1" value="1" placeholder="수량"><button class="btn red" onclick="openStockTrade(\''+esc(s.id)+'\',\'sell\')">매도</button></div>'+(currentMember?'<div class="stock-holding">보유 '+holding.toLocaleString()+'주 · 평가금액 '+value.toLocaleString()+'공'+(holding?'<br>평균 매수가 '+Number(s.avg_buy_price||0).toLocaleString()+'공 · <span class="stock-pnl '+stockChangeClass(Number(s.price)-Number(s.avg_buy_price))+'">현재 손익 '+((Number(s.price)-Number(s.avg_buy_price))*holding).toLocaleString()+'공</span>':'')+'</div>':'')+'</article>';
+   return '<article class="stock-card"><div class="stock-head"><div><div class="stock-symbol">'+esc(s.symbol||'가게주식')+'</div><div class="stock-name">'+esc(s.name)+'</div><div class="muted">'+esc(s.description||'')+'</div></div><div style="text-align:right"><div class="stock-price">'+Number(s.price).toLocaleString()+'공</div><div class="stock-change '+cls+'">'+stockChangeText(ch)+'</div></div></div><div class="stock-chart">'+stockChartSVG(s.history)+'</div><div class="stock-chart-label"><span>최근 변동</span><span>등락률 기준</span></div><div class="stock-trade-row"><button class="btn blue" onclick="openStockTrade(\''+esc(s.id)+'\',\'buy\')">매수</button><input id="stockQty-'+esc(s.id)+'" type="number" min="1" step="1" value="1" placeholder="수량"><button class="btn red" onclick="openStockTrade(\''+esc(s.id)+'\',\'sell\')">매도</button></div>'+(currentMember?'<div class="stock-holding">보유 '+holding.toLocaleString()+'주 · 평가금액 '+value.toLocaleString()+'공'+(holding?'<br>평균 매수가 '+Number(s.avg_buy_price||0).toLocaleString()+'공 · <span class="stock-pnl '+stockChangeClass(Number(s.price)-Number(s.avg_buy_price))+'">현재 손익 '+((Number(s.price)-Number(s.avg_buy_price))*holding).toLocaleString()+'공</span>':'')+'</div>':'')+'</article>';
  }).join('');
 }
 function openStockLogin(){
@@ -609,7 +609,7 @@ async function loadAdminStocks(){
  if(error||!data){el.innerHTML='<div class="notice error">'+esc(error?.message||'주식 관리 정보를 불러오지 못했습니다. stock.sql 실행 여부를 확인하세요.')+'</div>';return;}
  const stocks=data.stocks||[];
  if(!stocks.length){el.innerHTML='<p class="muted">등록된 가상 주식이 없습니다.</p>';return;}
- el.innerHTML=stocks.map(s=>'<div class="stock-admin-row"><div><b>'+esc(s.symbol)+' · '+esc(s.name)+'</b></div><div><strong>'+Number(s.price).toLocaleString()+'공</strong></div><div class="'+stockChangeClass(Number(s.change_percent))+'">'+stockChangeText(Number(s.change_percent))+'</div><div><input id="stockPct-'+esc(s.id)+'" type="number" step="1" min="-90" max="500" placeholder="등락률 %"><button class="btn blue" style="width:100%;margin-top:6px" onclick="adminChangeStock(\''+esc(s.id)+'\')">적용</button></div></div>').join('');
+ el.innerHTML=stocks.map(s=>'<div class="stock-admin-row"><div><b>'+esc(s.name)+'</b><small>아고라 시장 가게 주식</small></div><div><strong>'+Number(s.price).toLocaleString()+'공</strong></div><div class="'+stockChangeClass(Number(s.change_percent))+'">'+stockChangeText(Number(s.change_percent))+'</div><div><input id="stockPct-'+esc(s.id)+'" type="number" step="1" min="-90" max="500" placeholder="등락률 %"><button class="btn blue" style="width:100%;margin-top:6px" onclick="adminChangeStock(\''+esc(s.id)+'\')">적용</button></div></div>').join('');
 }
 async function adminChangeStock(id){
  const input=document.getElementById('stockPct-'+id);if(!input)return;
