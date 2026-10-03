@@ -373,7 +373,8 @@ async function uploadMarketFile(file,folder){
  const blocked=['exe','dll','bat','cmd','com','scr','msi','ps1','vbs','js'];
  if(blocked.includes(ext))throw new Error('실행 파일은 판매 파일로 올릴 수 없습니다.');
  const path=folder+'/'+crypto.randomUUID()+'-'+safe;
- const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false});
+ const contentType=file.type||'application/octet-stream';
+ const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false,contentType});
  if(error){
    console.error('market-files upload error:',error);
    throw new Error('파일 업로드 실패: '+(error.message||'Storage 오류'));
