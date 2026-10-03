@@ -206,7 +206,7 @@ function transferHTML(list,currentId){
    const amount=Number(t.amount).toLocaleString();
    let action='';
    if(incoming&&status==='pending'){
-     action='<div class="transfer-actions"><button class="btn green" onclick="acceptTransfer(\\''+esc(t.id)+'\\')">받기</button><button class="btn ghost" onclick="rejectTransfer(\\''+esc(t.id)+'\\')">거절</button></div>';
+     action="<div class='transfer-actions'><button class='btn green' onclick=\"acceptTransfer('"+esc(t.id)+"')\">받기</button><button class='btn ghost' onclick=\"rejectTransfer('"+esc(t.id)+"')\">거절</button></div>";
    }
    return '<div class="transfer-item"><div class="transfer-top"><div><b>'+esc(other)+'</b><div class="transfer-meta">'+label+' · '+esc(t.date)+'</div></div><div><strong>'+amount+'공</strong><div class="transfer-status '+esc(status)+'">'+(status==='pending'?'대기중':status==='accepted'?'완료':'거절/반환')+'</div></div></div>'+action+'</div>';
  }).join('');
