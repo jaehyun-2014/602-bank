@@ -600,7 +600,7 @@ begin
     )),'[]'::jsonb)
   );
 end;
-$;
+$$;
 
 revoke execute on function public.market_my_shop(text,text) from public,authenticated;
 revoke execute on function public.market_create_shop(text,text,text,text) from public,authenticated;
