@@ -130,7 +130,7 @@ let rouletteSpinning=false;
 function openRoulette(){
  const old=document.getElementById('rouletteWindow');if(old){old.remove();return;}
  const w=document.createElement('div');w.id='rouletteWindow';w.className='roulette-overlay';
- w.innerHTML='<div class="roulette-box"><div class="roulette-head"><b>AGORA GAME ROULETTE</b><button class="roulette-close" onclick="document.getElementById(\\'rouletteWindow\\').remove()">×</button></div><div class="roulette-content"><div class="roulette-wheel-wrap"><div class="roulette-pointer"></div><div id="rouletteWheel" class="roulette-wheel"></div></div><div id="rouletteResult" class="roulette-result">SPIN TO PLAY</div><div id="roulettePoints" class="roulette-points">GAME POINT: 1,000P</div><button id="rouletteSpin" class="roulette-spin" onclick="spinRoulette()">SPIN</button><div class="roulette-note">게임 포인트 전용 미니게임 · 아고라 은행 공과 분리</div><div class="roulette-cmd-hint">CMD: roulette</div></div></div>';
+ w.innerHTML=`<div class="roulette-box"><div class="roulette-head"><b>AGORA GAME ROULETTE</b><button class="roulette-close" onclick="document.getElementById('rouletteWindow').remove()">×</button></div><div class="roulette-content"><div class="roulette-wheel-wrap"><div class="roulette-pointer"></div><div id="rouletteWheel" class="roulette-wheel"></div></div><div id="rouletteResult" class="roulette-result">SPIN TO PLAY</div><div id="roulettePoints" class="roulette-points">GAME POINT: 1,000P</div><button id="rouletteSpin" class="roulette-spin" onclick="spinRoulette()">SPIN</button><div class="roulette-note">게임 포인트 전용 미니게임 · 아고라 은행 공과 분리</div><div class="roulette-cmd-hint">CMD: roulette</div></div></div>`;
  document.body.appendChild(w);
 }
 function spinRoulette(){
