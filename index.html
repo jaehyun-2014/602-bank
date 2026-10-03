@@ -557,7 +557,7 @@ function studentLogout(){
  document.getElementById('sno').value='';document.getElementById('sname').value='';document.getElementById('spin').value='';
 }
 
-async function adminLogin(){
+async async function adminLogin(){
  if(!requireSupabase('amsg'))return;
  const code=document.getElementById('apin').value.trim();
  if(!code)return msg('amsg','관리자 코드를 입력하세요.',true);
