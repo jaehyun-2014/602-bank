@@ -23,7 +23,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 input{width:100%;padding:13px 14px;border:1px solid #ccd7e7;border-radius:11px;outline:0;background:#fff;margin:6px 0 10px}input:focus{border-color:#4c8bf5;box-shadow:0 0 0 3px #4c8bf51c}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.top a{color:#1255c5;text-decoration:none;font-weight:800}.muted{color:#66758b;font-size:14px}.balance{background:linear-gradient(135deg,#123a83,#2174e8);color:#fff;border-radius:18px;padding:24px}.balance span{opacity:.75}.balance strong{display:block;font-size:34px;margin-top:8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:#fff;border:1px solid #dfe7f3;border-radius:16px;padding:18px}.stat span{display:block;color:#718096;font-size:13px}.stat b{display:block;margin-top:5px;font-size:21px}
-.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}
+.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.account-actions{display:flex;align-items:center;gap:8px}.edit{color:#155eef;background:#eef4ff;font-size:13px;font-weight:800;padding:8px 10px;border-radius:9px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}
 footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{display:none!important}
 @media(max-width:720px){.grid,.stats{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
 @media(max-width:480px){.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
@@ -160,8 +160,8 @@ function renderAdmin(data){
  const total=accounts.reduce((s,a)=>s+Number(a.balance),0);
  d.innerHTML=
  '<div class="stats"><div class="stat"><span>계좌</span><b>'+accounts.length+'개</b></div><div class="stat"><span>전체 잔액</span><b>'+total.toLocaleString()+'공</b></div><div class="stat"><span>거래</span><b>'+all.length+'건</b></div><div class="stat"><span>저장 방식</span><b>클라우드</b></div></div>'+
- '<div class="panel"><h2>회공 계좌</h2>'+(
- accounts.length?accounts.map(a=>'<div class="account"><div><b>'+esc(a.name)+'</b><small>'+esc(a.no)+'</small></div><strong>'+Number(a.balance).toLocaleString()+'공</strong><button class="danger" onclick="delAccount(\''+esc(a.no)+'\')">삭제</button></div>').join('')
+ '<div class="panel"><h2>회원 계좌</h2><p class="muted">각 계좌의 수정 버튼에서 이름과 고유번호를 설정할 수 있습니다. 잔액과 계좌번호는 그대로 유지됩니다.</p>'+(
+ accounts.length?accounts.map(a=>'<div class="account"><div><b>'+esc(a.name)+'</b><small>'+esc(a.no)+'</small></div><strong>'+Number(a.balance).toLocaleString()+'공</strong><div class="account-actions"><button class="edit" onclick="editAccount(\''+esc(a.no)+'\')">수정</button><button class="danger" onclick="delAccount(\''+esc(a.no)+'\')">삭제</button></div></div>').join('')
  :'<p class="muted">등록된 회공 계좌가 없습니다.</p>')+'</div>'+
  '<div class="panel"><h2>회공 추가</h2><div class="grid"><input id="newname" placeholder="이름"><input id="newno" placeholder="계좌번호 602-000"><input id="newpin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><input id="newbal" type="number" min="0" value="0" placeholder="초기 잔액"></div><button class="btn blue" onclick="addAccount()">계좌 만들기</button><div id="addmsg"></div></div>'+
  '<div class="panel"><h2>전체 거래내역</h2>'+(
@@ -176,6 +176,24 @@ async function addAccount(){
  if(!n||!/^[0-9]{3}$/.test(no.replace(/^602-/,''))||!/^602-[0-9]{3}$/.test(no)||!/^[0-9]{4,8}$/.test(p)||!Number.isInteger(b)||b<0)return msg('addmsg','이름, 계좌번호(602-000), 고유번호(4~8자리), 초기 잔액을 확인하세요.',true);
  const {data,error}=await supabaseClient.rpc('bank_admin_add',{p_code:adminCode,p_name:n,p_no:no,p_pin:p,p_balance:b});
  if(error||!data)return msg('addmsg',error?.message||'계좌 생성에 실패했습니다.',true);
+ await adminRefresh();
+}
+
+async function editAccount(no){
+ if(!requireSupabase('amsg'))return;
+ const account=(await supabaseClient.rpc('bank_admin_list',{p_code:adminCode})).data?.accounts?.find(a=>a.no===no);
+ if(!account)return msg('amsg','계좌 정보를 불러오지 못했습니다.',true);
+ const name=prompt(no+' 계좌의 회원 이름을 입력하세요.',account.name);
+ if(name===null)return;
+ const cleanName=name.trim();
+ if(!cleanName)return msg('amsg','이름을 입력하세요.',true);
+ const pin=prompt(no+' 계좌의 새 고유번호를 입력하세요.\n4~8자리 숫자', '');
+ if(pin===null)return;
+ const cleanPin=pin.trim();
+ if(!/^[0-9]{4,8}$/.test(cleanPin))return msg('amsg','고유번호는 4~8자리 숫자여야 합니다.',true);
+ const {data,error}=await supabaseClient.rpc('bank_admin_update',{p_code:adminCode,p_no:no,p_name:cleanName,p_pin:cleanPin});
+ if(error||!data)return msg('amsg',error?.message||'계좌 수정에 실패했습니다.',true);
+ msg('amsg',no+' 계좌 설정이 저장되었습니다.');
  await adminRefresh();
 }
 
