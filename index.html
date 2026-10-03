@@ -8,8 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="아고라 은행">
-<title>아고라 은행</title>
+<meta name="apple-mobile-web-app-title" content="아고라 케피털">
+<title>아고라 케피털</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eef4ff;color:#152238}
 button,input{font:inherit}button{cursor:pointer;border:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px 50px}
@@ -23,32 +23,46 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 input{width:100%;padding:13px 14px;border:1px solid #ccd7e7;border-radius:11px;outline:0;background:#fff;margin:6px 0 10px}input:focus{border-color:#4c8bf5;box-shadow:0 0 0 3px #4c8bf51c}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.top a{color:#1255c5;text-decoration:none;font-weight:800}.muted{color:#66758b;font-size:14px}.balance{background:linear-gradient(135deg,#123a83,#2174e8);color:#fff;border-radius:18px;padding:24px}.balance span{opacity:.75}.balance strong{display:block;font-size:34px;margin-top:8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:#fff;border:1px solid #dfe7f3;border-radius:16px;padding:18px}.stat span{display:block;color:#718096;font-size:13px}.stat b{display:block;margin-top:5px;font-size:21px}
-.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.account-actions{display:flex;align-items:center;gap:8px}.edit{color:#155eef;background:#eef4ff;font-size:13px;font-weight:800;padding:8px 10px;border-radius:9px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}.transfer-list{margin-top:8px}.transfer-item{padding:14px 0;border-bottom:1px solid #edf1f7}.transfer-item:last-child{border-bottom:0}.transfer-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.transfer-meta{color:#718096;font-size:13px;margin-top:4px}.transfer-actions{display:flex;gap:8px;margin-top:10px}.transfer-status{font-size:12px;font-weight:800;padding:5px 8px;border-radius:8px;background:#eef3fb;color:#52627a}.transfer-status.pending{background:#fff8e6;color:#8a5a00}.transfer-status.accepted{background:#e9f8f1;color:#087443}.transfer-status.rejected{background:#fff0ef;color:#b42318}
+.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.account-actions{display:flex;align-items:center;gap:8px}.edit{color:#155eef;background:#eef4ff;font-size:13px;font-weight:800;padding:8px 10px;border-radius:9px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}.market-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.market-tab{padding:10px 14px;border-radius:999px;background:#eef3fb;color:#31435e;font-weight:800}.market-tab.active{background:#155eef;color:#fff}.market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.product-card{background:#fff;border:1px solid #dfe7f3;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px #102a4d0a}.product-preview{height:170px;background:#eaf1ff;display:flex;align-items:center;justify-content:center;overflow:hidden}.product-preview img{width:100%;height:100%;object-fit:cover}.product-preview .preview-text{font-size:30px;font-weight:900;color:#155eef}.product-body{padding:16px}.product-title{font-size:18px;font-weight:850;margin-bottom:6px}.product-desc{color:#66758b;font-size:13px;min-height:38px}.product-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:12px}.price{font-size:19px;font-weight:900}.market-actions{display:flex;gap:8px;margin-top:12px}.market-actions .btn{flex:1;padding:10px 12px}.like{background:#fff0ef;color:#b42318}.like.liked{background:#d92d20;color:#fff}.cart-badge{font-size:11px;background:#155eef;color:#fff;border-radius:999px;padding:3px 7px;margin-left:4px}.seller-box{background:#f6f8fc;border-radius:12px;padding:10px;margin-top:10px;font-size:12px;color:#52627a}.market-empty{text-align:center;padding:35px;color:#718096}.market-detail{position:fixed;inset:0;background:#0b1830aa;display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}.market-modal{background:#fff;border-radius:22px;max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:22px}.close{float:right;background:#eef3fb;padding:8px 11px;border-radius:9px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.market-small{font-size:12px;color:#718096}.transfer-list{margin-top:8px}.transfer-item{padding:14px 0;border-bottom:1px solid #edf1f7}.transfer-item:last-child{border-bottom:0}.transfer-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.transfer-meta{color:#718096;font-size:13px;margin-top:4px}.transfer-actions{display:flex;gap:8px;margin-top:10px}.transfer-status{font-size:12px;font-weight:800;padding:5px 8px;border-radius:8px;background:#eef3fb;color:#52627a}.transfer-status.pending{background:#fff8e6;color:#8a5a00}.transfer-status.accepted{background:#e9f8f1;color:#087443}.transfer-status.rejected{background:#fff0ef;color:#b42318}
 footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{display:none!important}
-@media(max-width:720px){.grid,.stats{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
-@media(max-width:480px){.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
+@media(max-width:720px){.grid,.stats,.market-grid{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
+@media(max-width:480px){.market-grid,.form-grid{grid-template-columns:1fr}.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><div class="logo"><div class="mark" aria-label="아고라 은행"></div>아고라 은행</div><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button></header>
+<header><div class="logo"><div class="mark" aria-label="아고라 케피털"></div>아고라 케피털</div><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button></header>
 
 <section id="home">
-<div class="hero"><div class="eyebrow">CLASS BANKING</div><h1>아고라 은행</h1><p>우리 반 전용 가상화폐 은행</p><div class="actions"><button class="btn primary" onclick="show('student')">일반 로그인</button></div></div>
+<div class="hero"><div class="eyebrow">AGORA CAPITAL</div><h1>아고라 케피털</h1><p>우리 반의 금융과 경제활동을 한곳에서</p><div class="actions"><button class="btn primary" onclick="show('student')">아고라 은행</button><button class="btn primary" onclick="show('market');loadMarket()">아고라 시장</button></div></div>
+<div class="grid">
+<div class="panel"><div class="eyebrow">BANKING</div><h2>아고라 은행</h2><p class="muted">계좌 조회, 입·출금, 회원 간 송금과 송금 받기를 이용합니다.</p><button class="btn blue" onclick="show('student')">은행 들어가기</button></div>
+<div class="panel"><div class="eyebrow">MARKET</div><h2>아고라 시장</h2><p class="muted">회원이 만든 템플릿과 자료를 등록하고 공으로 사고팔 수 있습니다.</p><button class="btn blue" onclick="show('market');loadMarket()">시장 들어가기</button></div>
+</div>
+</section>
+
+<section id="market" class="hidden">
+<div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>아고라 시장</b></div>
+<div class="panel"><div class="eyebrow">AGORA MARKET</div><h1 style="margin:5px 0">아고라 시장</h1><p class="muted">회원들이 만든 디지털 자료를 공으로 거래하는 학급 장터입니다.</p>
+<div class="actions" style="margin-top:18px"><button class="btn blue" onclick="openMarketLogin()">회원 로그인</button><button class="btn ghost" onclick="openMarketCart()">장바구니 <span id="cartCount" class="cart-badge">0</span></button><button class="btn green" onclick="openSellForm()">상품 판매하기</button></div></div>
+<div class="market-nav">
+<button class="market-tab active" onclick="marketCategory('all',this)">전체</button><button class="market-tab" onclick="marketCategory('템플릿',this)">템플릿</button><button class="market-tab" onclick="marketCategory('디자인',this)">디자인</button><button class="market-tab" onclick="marketCategory('문서',this)">문서</button><button class="market-tab" onclick="marketCategory('도구',this)">도구</button><button class="market-tab" onclick="marketCategory('기타',this)">기타</button>
+</div>
+<div id="marketNotice"></div><div id="marketGrid" class="market-grid"><div class="market-empty">상품을 불러오는 중...</div></div>
 </section>
 
 <section id="student" class="hidden">
-<div class="top"><a href="#" onclick="show('home');return false">← 아고라 은행</a><b>일반 로그인</b></div>
-<div id="studentLogin" class="panel login"><div class="mark" aria-label="아고라 은행"></div><h2>내 계좌</h2><p class="muted">계좌번호, 이름, 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="sname" placeholder="이름"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
+<div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>일반 로그인</b></div>
+<div id="studentLogin" class="panel login"><div class="mark" aria-label="아고라 케피털"></div><h2>내 계좌</h2><p class="muted">계좌번호, 이름, 고유번호로 본인확인</p><input id="sno" placeholder="계좌번호 602-001"><input id="sname" placeholder="이름"><input id="spin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="studentLogin()">본인확인</button><div id="smsg"></div></div>
 <div id="studentDash" class="hidden"></div>
 </section>
 
 <section id="admin" class="hidden">
-<div class="top"><a href="#" onclick="show('home');return false">← 아고라 은행</a><b>관리자 통합뷰어</b></div>
-<div id="adminLogin" class="panel login"><div class="mark" aria-label="아고라 은행"></div><h2>관리자 확인</h2><p class="muted">관리자 코드를 입력하세요.</p><input id="apin" type="password" inputmode="numeric" placeholder="관리자 코드"><button class="btn blue" style="width:100%" onclick="adminLogin()">관리자 확인</button><div id="amsg"></div></div>
+<div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>관리자 통합뷰어</b></div>
+<div id="adminLogin" class="panel login"><div class="mark" aria-label="아고라 케피털"></div><h2>관리자 확인</h2><p class="muted">관리자 코드를 입력하세요.</p><input id="apin" type="password" inputmode="numeric" placeholder="관리자 코드"><button class="btn blue" style="width:100%" onclick="adminLogin()">관리자 확인</button><div id="amsg"></div></div>
 <div id="adminDash" class="hidden"></div>
 </section>
-<footer>아고라 은행 · 학급용 가상 시스템</footer>
+<footer>아고라 케피털 · 학급용 경제 시스템</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
@@ -63,7 +77,7 @@ try{
     supabaseReady=true;
   }
 }catch(e){
-  console.error('아고라 은행 Supabase 초기화 오류:',e);
+  console.error('아고라 케피털 Supabase 초기화 오류:',e);
 }
 let currentMember=null;
 let adminCode=null;
@@ -76,11 +90,122 @@ function requireSupabase(target){
   return false;
 }
 window.addEventListener('error',function(e){
-  console.error('아고라 은행 오류:',e.error||e.message);
+  console.error('아고라 케피털 오류:',e.error||e.message);
   const target=document.getElementById('smsg')||document.getElementById('amsg');
   if(target&&!supabaseReady) msg(target,'은행 서버 연결에 실패했습니다. 페이지를 새로고침해 주세요.',true);
 });
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+let marketCategoryValue='all';
+let marketItems=[];
+
+function marketCategory(category,button){
+ marketCategoryValue=category;
+ document.querySelectorAll('.market-tab').forEach(x=>x.classList.remove('active'));
+ if(button)button.classList.add('active');
+ loadMarket();
+}
+
+async function loadMarket(){
+ if(!requireSupabase('marketNotice'))return;
+ const {data,error}=await supabaseClient.rpc('market_browse',{p_category:marketCategoryValue});
+ if(error||!data)return msg('marketNotice',error?.message||'시장 상품을 불러오지 못했습니다.',true);
+ marketItems=data.items||[];
+ renderMarket();
+ await refreshCartCount();
+}
+
+function renderMarket(){
+ const grid=document.getElementById('marketGrid');
+ if(!grid)return;
+ if(!marketItems.length){grid.innerHTML='<div class="market-empty">등록된 상품이 없습니다.</div>';return;}
+ grid.innerHTML=marketItems.map(item=>{
+   const preview=item.preview_url?'<img src="'+esc(item.preview_url)+'" alt="">':'<div class="preview-text">'+esc(item.category)+'</div>';
+   return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="seller-box">판매자 · '+esc(item.seller_name)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">미리보기</button><button class="btn like '+(item.liked?'liked':'')+'" onclick="toggleLike(\''+esc(item.id)+'\')">좋아요</button></div><button class="btn blue" style="width:100%;margin-top:8px" onclick="addToCart(\''+esc(item.id)+'\')">장바구니 담기</button></div></article>';
+ }).join('');
+}
+
+function openMarketLogin(){
+ show('student');
+ const e=document.getElementById('smsg');
+ if(e)e.innerHTML='<div class="notice">시장 구매·좋아요·장바구니를 이용하려면 먼저 회원 로그인하세요.</div>';
+}
+
+function openProduct(id){
+ const item=marketItems.find(x=>String(x.id)===String(id)); if(!item)return;
+ const old=document.getElementById('marketModal');if(old)old.remove();
+ const modal=document.createElement('div');modal.id='marketModal';modal.className='market-detail';
+ const preview=item.preview_url?'<img src="'+esc(item.preview_url)+'" style="width:100%;max-height:360px;object-fit:contain;border-radius:14px;background:#eef4ff">':'<div class="product-preview" style="height:260px;border-radius:14px"><div class="preview-text">'+esc(item.category)+'</div></div>';
+ modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">'+esc(item.category)+'</div><h2>'+esc(item.title)+'</h2>'+preview+'<p style="margin-top:16px">'+esc(item.description)+'</p><div class="seller-box">판매자 · '+esc(item.seller_name)+'<br>가격 · <b>'+Number(item.price).toLocaleString()+'공</b></div><div class="market-actions"><button class="btn ghost" onclick="toggleLike(\''+esc(item.id)+'\')">좋아요</button><button class="btn blue" onclick="addToCart(\''+esc(item.id)+'\')">장바구니 담기</button></div></div>';
+ document.body.appendChild(modal);
+}
+
+async function toggleLike(id){
+ if(!currentMember){openMarketLogin();return;}
+ const {data,error}=await supabaseClient.rpc('market_toggle_like',{p_no:currentMember.no,p_pin:currentMember.pin,p_item_id:id});
+ if(error||!data)return msg('marketNotice',error?.message||'좋아요 처리에 실패했습니다.',true);
+ await loadMarket();
+}
+
+async function addToCart(id){
+ if(!currentMember){openMarketLogin();return;}
+ const {data,error}=await supabaseClient.rpc('market_cart_add',{p_no:currentMember.no,p_pin:currentMember.pin,p_item_id:id});
+ if(error||!data)return msg('marketNotice',error?.message||'장바구니에 담지 못했습니다.',true);
+ await refreshCartCount();msg('marketNotice','장바구니에 담았습니다.');
+}
+
+async function refreshCartCount(){
+ const el=document.getElementById('cartCount');
+ if(!currentMember){if(el)el.textContent='0';return;}
+ const {data}=await supabaseClient.rpc('market_cart_list',{p_no:currentMember.no,p_pin:currentMember.pin});
+ if(el)el.textContent=String(data?.items?.length||0);
+}
+
+async function openMarketCart(){
+ if(!currentMember){openMarketLogin();return;}
+ const {data,error}=await supabaseClient.rpc('market_cart_list',{p_no:currentMember.no,p_pin:currentMember.pin});
+ if(error||!data)return msg('marketNotice',error?.message||'장바구니를 불러오지 못했습니다.',true);
+ const items=data.items||[],old=document.getElementById('marketModal');if(old)old.remove();
+ const modal=document.createElement('div');modal.id='marketModal';modal.className='market-detail';
+ modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">CART</div><h2>장바구니</h2>'+(items.length?items.map(x=>'<div class="account"><div><b>'+esc(x.title)+'</b><small>'+esc(x.seller_name)+'</small></div><strong>'+Number(x.price).toLocaleString()+'공</strong><button class="danger" onclick="removeCart(\''+esc(x.item_id)+'\')">삭제</button></div>').join(''):'<p class="muted">장바구니가 비어 있습니다.</p>')+(items.length?'<button class="btn blue" style="width:100%;margin-top:15px" onclick="buyCart()">장바구니 상품 모두 구매</button>':'')+'</div>';
+ document.body.appendChild(modal);
+}
+
+async function removeCart(id){
+ const {data,error}=await supabaseClient.rpc('market_cart_remove',{p_no:currentMember.no,p_pin:currentMember.pin,p_item_id:id});
+ if(error||!data)return alert(error?.message||'삭제에 실패했습니다.');
+ document.getElementById('marketModal')?.remove();await refreshCartCount();await openMarketCart();
+}
+
+async function buyCart(){
+ const {data,error}=await supabaseClient.rpc('market_purchase_cart',{p_no:currentMember.no,p_pin:currentMember.pin});
+ if(error||!data)return alert(error?.message||'구매에 실패했습니다.');
+ alert('구매가 완료되었습니다. '+Number(data.total||0).toLocaleString()+'공이 결제되었습니다.');
+ await refreshMember();await refreshCartCount();document.getElementById('marketModal')?.remove();await loadMarket();
+}
+
+function openSellForm(){
+ if(!currentMember){openMarketLogin();return;}
+ const old=document.getElementById('marketModal');if(old)old.remove();
+ const modal=document.createElement('div');modal.id='marketModal';modal.className='market-detail';
+ modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">SELL</div><h2>상품 등록</h2><p class="muted">상품 설명, 미리보기 이미지 주소, 자료 링크를 등록할 수 있습니다.</p><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreview" placeholder="미리보기 이미지 URL"></div><input id="sellDesc" placeholder="짧은 설명"><input id="sellUrl" placeholder="상품/다운로드 링크"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">시장에 등록</button><div id="sellMsg"></div></div>';
+ document.body.appendChild(modal);
+}
+
+async function createMarketItem(){
+ const title=document.getElementById('sellTitle').value.trim(),price=Number(document.getElementById('sellPrice').value),category=document.getElementById('sellCategory').value.trim()||'기타',preview=document.getElementById('sellPreview').value.trim(),desc=document.getElementById('sellDesc').value.trim(),url=document.getElementById('sellUrl').value.trim();
+ if(!title||!desc||!Number.isInteger(price)||price<0)return msg('sellMsg','상품 이름, 설명, 가격을 확인하세요.',true);
+ const {data,error}=await supabaseClient.rpc('market_create_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_title:title,p_description:desc,p_category:category,p_price:price,p_preview_url:preview,p_download_url:url});
+ if(error||!data)return msg('sellMsg',error?.message||'상품 등록에 실패했습니다.',true);
+ document.getElementById('marketModal')?.remove();await loadMarket();msg('marketNotice','상품이 시장에 등록되었습니다.');
+}
+
+async function refreshMember(){
+ if(!currentMember)return;
+ const {data,error}=await supabaseClient.rpc('bank_member_login',{p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin});
+ if(error||!data)return;
+ currentMember.account=data.account;currentMember.tx=data.tx||[];currentMember.transfers=data.transfers||[];
+}
 
 async function studentLogin(){
  if(!requireSupabase('smsg'))return;
@@ -305,8 +430,8 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=5', {updateViaCache: 'none'}).catch(err => {
-      console.warn('아고라 은행 service worker 등록 실패:', err);
+    navigator.serviceWorker.register('sw.js?v=6', {updateViaCache: 'none'}).catch(err => {
+      console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
 }
