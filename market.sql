@@ -613,3 +613,209 @@ grant execute on function public.market_browse(text,text,text) to anon;
 
 grant usage on schema public to anon;
 notify pgrst,'reload schema';
+
+
+-- 여러 가게 지원 및 상품-가게 연결
+alter table public.market_shops
+  drop constraint if exists market_shops_owner_account_id_key;
+
+alter table public.market_items
+  add column if not exists shop_id uuid references public.market_shops(id) on delete restrict;
+
+-- 기존 상품은 해당 판매자의 기존 가게에 연결
+update public.market_items m
+set shop_id = sh.id
+from public.market_shops sh
+where m.shop_id is null
+  and sh.owner_account_id = m.seller_account_id
+  and sh.active = true;
+
+create index if not exists market_items_shop_idx
+  on public.market_items(shop_id,created_at desc);
+
+-- 앞으로는 모든 상품이 가게에 소속되도록 합니다.
+alter table public.market_items
+  alter column shop_id set not null;
+
+-- 여러 가게 목록 조회
+create or replace function public.market_my_shops(p_no text,p_pin text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare a public.bank_accounts;
+begin
+  select * into a from public.bank_accounts
+  where account_no=p_no
+    and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
+  if not found then raise exception '본인확인에 실패했습니다.'; end if;
+
+  return jsonb_build_object(
+    'shops',coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id',sh.id,
+        'name',sh.name,
+        'description',sh.description,
+        'created_at',to_char(sh.created_at at time zone 'Asia/Seoul','YYYY-MM-DD HH24:MI:SS'),
+        'product_count',(select count(*) from public.market_items m where m.shop_id=sh.id and m.active=true)
+      ) order by sh.created_at desc)
+      from public.market_shops sh
+      where sh.owner_account_id=a.id and sh.active=true
+    ),'[]'::jsonb)
+  );
+end;
+$$;
+
+-- 같은 계정으로도 여러 가게를 만들 수 있습니다.
+create or replace function public.market_create_shop(
+  p_no text,p_pin text,p_name text,p_description text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare a public.bank_accounts;
+declare sh public.market_shops;
+declare setup_cost bigint:=1000;
+begin
+  select * into a from public.bank_accounts
+  where account_no=p_no
+    and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex')
+  for update;
+  if not found then raise exception '본인확인에 실패했습니다.'; end if;
+
+  if p_name is null or length(trim(p_name))=0
+    then raise exception '가게 이름을 입력하세요.'; end if;
+
+  if length(trim(p_name))>40 then raise exception '가게 이름은 40자 이하로 입력하세요.'; end if;
+  if length(coalesce(trim(p_description),''))>120 then raise exception '가게 소개는 120자 이하로 입력하세요.'; end if;
+
+  if a.balance < setup_cost then
+    raise exception '가게 설립 비용 1,000공이 필요합니다.';
+  end if;
+
+  update public.bank_accounts
+  set balance=balance-setup_cost
+  where id=a.id;
+
+  insert into public.bank_transactions(account_id,type,amount)
+  values(a.id,'withdraw',setup_cost);
+
+  insert into public.market_shops(owner_account_id,name,description)
+  values(a.id,trim(p_name),coalesce(trim(p_description),'')) returning * into sh;
+
+  return jsonb_build_object(
+    'shop',jsonb_build_object('id',sh.id,'name',sh.name,'description',sh.description),
+    'balance',a.balance-setup_cost
+  );
+end;
+$$;
+
+-- 기존 8개 인자 상품등록 함수 제거
+drop function if exists public.market_create_item(text,text,text,text,text,bigint,text,text);
+
+-- 상품을 특정 가게에 등록
+create or replace function public.market_create_item(
+  p_no text,p_pin text,p_shop_id uuid,p_title text,p_description text,
+  p_category text,p_price bigint,p_preview_url text,p_download_url text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare a public.bank_accounts;
+declare sh public.market_shops;
+declare item public.market_items;
+begin
+  select * into a from public.bank_accounts
+  where account_no=p_no
+    and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
+  if not found then raise exception '본인확인에 실패했습니다.'; end if;
+
+  select * into sh from public.market_shops
+  where id=p_shop_id and owner_account_id=a.id and active=true;
+  if not found then raise exception '선택한 가게를 찾을 수 없습니다.'; end if;
+
+  if p_title is null or length(trim(p_title))=0 then raise exception '상품 이름을 입력하세요.'; end if;
+  if p_description is null or length(trim(p_description))=0 then raise exception '상품 설명을 입력하세요.'; end if;
+  if p_price is null or p_price<0 then raise exception '가격을 확인하세요.'; end if;
+
+  insert into public.market_items(
+    shop_id,seller_account_id,title,description,category,price,preview_url,download_url
+  ) values(
+    sh.id,a.id,trim(p_title),trim(p_description),
+    coalesce(nullif(trim(p_category),''),'기타'),
+    p_price,coalesce(trim(p_preview_url),''),coalesce(trim(p_download_url),'')
+  )
+  returning * into item;
+
+  return jsonb_build_object('id',item.id,'title',item.title,'price',item.price,'shop_id',sh.id);
+end;
+$$;
+
+-- 시장 목록: 상품마다 실제 소속 가게를 표시
+create or replace function public.market_browse(
+  p_category text default 'all',
+  p_no text default '',
+  p_pin text default ''
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return jsonb_build_object(
+    'items',
+    coalesce((
+      select jsonb_agg(
+        jsonb_build_object(
+          'id',m.id,
+          'title',m.title,
+          'description',m.description,
+          'category',m.category,
+          'price',m.price,
+          'preview_url',m.preview_url,
+          'download_url',m.download_url,
+          'seller_name',a.name,
+          'shop_id',sh.id,
+          'shop_name',sh.name,
+          'shop_description',sh.description,
+          'like_count',(select count(*) from public.market_likes l where l.item_id=m.id),
+          'liked',exists(
+            select 1 from public.market_likes l2
+            where l2.item_id=m.id
+              and l2.account_id=(
+                select id from public.bank_accounts
+                where account_no=p_no
+                  and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex')
+                limit 1
+              )
+          )
+        )
+        order by m.created_at desc
+      )
+      from public.market_items m
+      join public.bank_accounts a on a.id=m.seller_account_id
+      join public.market_shops sh on sh.id=m.shop_id and sh.active=true
+      where m.active=true
+        and (p_category='all' or m.category=p_category)
+    ),'[]'::jsonb)
+  );
+end;
+$$;
+
+revoke execute on function public.market_my_shops(text,text) from public,authenticated;
+revoke execute on function public.market_create_shop(text,text,text,text) from public,authenticated;
+revoke execute on function public.market_create_item(text,text,uuid,text,text,text,bigint,text,text) from public,authenticated;
+revoke execute on function public.market_browse(text,text,text) from public,authenticated;
+
+grant execute on function public.market_my_shops(text,text) to anon;
+grant execute on function public.market_create_shop(text,text,text,text) to anon;
+grant execute on function public.market_create_item(text,text,uuid,text,text,text,bigint,text,text) to anon;
+grant execute on function public.market_browse(text,text,text) to anon;
+
+notify pgrst,'reload schema';
