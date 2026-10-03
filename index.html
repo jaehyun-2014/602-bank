@@ -646,7 +646,8 @@ async function loadMyLoans(){
  el.innerHTML=loans.map(l=>{
   const status=l.status==='pending'?'심사 대기':l.status==='approved'?'상환 중':l.status==='rejected'?'거절됨':'상환 완료';
   const action=l.status==='approved'?'<div class="two" style="margin-top:10px"><input id="repay_'+esc(l.id)+'" type="number" min="1" max="'+Number(l.remaining)+'" placeholder="상환 금액"><button class="btn green" onclick="repayLoan(\''+esc(l.id)+'\','+Number(l.remaining)+')">상환하기</button></div>':'';
-  return '<div class="account"><div><b>'+Number(l.amount).toLocaleString()+'공 대출</b><small>'+esc(l.purpose||'사유 없음')+' · '+esc(status)+'</small></div><div style="text-align:right"><strong>'+Number(l.remaining).toLocaleString()+'공</strong><small>남은 원금</small></div></div>'+action;
+  const interest='이자 '+Number(l.interest_rate||0).toLocaleString()+'% · '+Number(l.interest_amount||0).toLocaleString()+'공';
+  return '<div class="account"><div><b>'+Number(l.amount).toLocaleString()+'공 대출</b><small>'+esc(l.purpose||'사유 없음')+' · '+esc(status)+' · '+interest+'</small></div><div style="text-align:right"><strong>'+Number(l.remaining).toLocaleString()+'공</strong><small>남은 상환액</small></div></div>'+action;
  }).join('');
 }
 async function applyLoan(){
