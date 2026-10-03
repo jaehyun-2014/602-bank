@@ -680,6 +680,25 @@ async function loadEconomyInfo(){
  if(error||!data){el.innerHTML="<div class=\"notice error\">"+esc(error?.message||"경제정보를 불러오지 못했습니다.")+"</div>";return;}
  const score=Math.max(0,Math.min(1000,Number(data.score||0))),deg=(score/1000)*360;
  el.innerHTML="<div class=\"econ-grid\"><div class=\"econ-score\"><div class=\"econ-ring\" style=\"--scoredeg:"+deg+"deg\"><b>"+score+"</b></div><div><div class=\"econ-level\">"+esc(data.level||"일반")+"</div><div class=\"muted\">경제점수 1,000점 만점</div><span class=\"credit-chip\">"+esc(data.credit_status||"신용정보 정상")+"</span></div></div><div class=\"econ-list\"><div class=\"econ-row\"><span>현재 잔액</span><b>"+Number(data.balance||0).toLocaleString()+"공</b></div><div class=\"econ-row\"><span>입금 횟수</span><b>"+Number(data.deposit_count||0).toLocaleString()+"회</b></div><div class=\"econ-row\"><span>출금 횟수</span><b>"+Number(data.withdraw_count||0).toLocaleString()+"회</b></div><div class=\"econ-row\"><span>대출 상태</span><b>"+esc(data.loan_status||"없음")+"</b></div><div class=\"econ-row\"><span>시장 구매</span><b>"+Number(data.market_purchase_count||0).toLocaleString()+"건</b></div></div></div><p class=\"market-small\" style=\"margin-top:12px\">점수는 잔액·거래활동·대출 상태·시장 활동을 정해진 게임 규칙으로 계산합니다.</p>";
+ if(!window.__agoraEconomyTrollShown && Math.random()<0.07){
+   window.__agoraEconomyTrollShown=true;
+   setTimeout(showEconomyTroll,650);
+ }
+}
+function showEconomyTroll(){
+ const old=document.getElementById("economyTroll");
+ if(old)old.remove();
+ const box=document.createElement("div");
+ box.id="economyTroll";
+ box.style.cssText="position:fixed;inset:0;background:rgba(8,16,30,.48);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px";
+ box.innerHTML="<div style=\"width:min(430px,92vw);background:#fff;border:1px solid #b8c5d8;border-radius:12px;box-shadow:0 24px 70px #0006;padding:22px;color:#152238;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif\"><div style=\"font-weight:900;font-size:17px;margin-bottom:10px\">아고라 케피털</div><div style=\"font-size:15px;font-weight:800;margin-bottom:8px\">주의: 비정상적인 경제 활동이 감지되었습니다.</div><div style=\"font-size:13px;color:#66758b;line-height:1.6\">경제 활동 기록을 다시 확인하는 중입니다...</div><div style=\"margin-top:15px;height:7px;background:#e8edf5;border-radius:99px;overflow:hidden\"><div id=\"economyTrollBar\" style=\"height:100%;width:12%;background:#155eef;transition:width 1.8s ease\"></div></div></div>";
+ document.body.appendChild(box);
+ setTimeout(()=>{const bar=document.getElementById("economyTrollBar");if(bar)bar.style.width="100%";},80);
+ setTimeout(()=>{
+   const b=document.getElementById("economyTroll");
+   if(b)b.innerHTML="<div style=\"width:min(430px,92vw);background:#fff;border:1px solid #b8c5d8;border-radius:12px;box-shadow:0 24px 70px #0006;padding:22px;color:#152238;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif\"><div style=\"font-weight:900;font-size:17px;margin-bottom:10px\">아고라 케피털</div><div style=\"font-size:15px;font-weight:800;margin-bottom:8px\">분석 결과: 정상</div><div style=\"font-size:13px;color:#66758b;line-height:1.6\">비정상적인 경제 활동이 확인되지 않았습니다.</div></div>";
+ },2100);
+ setTimeout(()=>{const b=document.getElementById("economyTroll");if(b)b.remove();},3300);
 }
 async function studentTx(type){
  if(!requireSupabase('txmsg'))return;
