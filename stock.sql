@@ -50,88 +50,57 @@ revoke all on table public.agora_stock_history from anon, authenticated;
 revoke all on table public.agora_stock_holdings from anon, authenticated;
 revoke all on table public.agora_stock_trades from anon, authenticated;
 
--- 실제 상장기업 기반 종목.
--- 회사/종목코드는 실제 KRX 종목을 사용하지만, 매수·매도는 아고라 내부의 가상 화폐 "공"으로만 처리합니다.
--- 아래 가격은 초기 표시값이며 실시간 시세 API가 아니라 아고라 내부 시뮬레이션 가격입니다.
-insert into public.agora_stocks(symbol,name,description,price,previous_price)
-values
-('005930','삼성전자','KOSPI 005930 · 삼성전자의 아고라 가상주식',276000,276000),
-('000660','SK하이닉스','KOSPI 000660 · SK하이닉스의 아고라 가상주식',1841000,1841000),
-('005380','현대차','KOSPI 005380 · 현대자동차의 아고라 가상주식',345000,345000),
-('035420','NAVER','KOSPI 035420 · NAVER의 아고라 가상주식',192200,192200),
-('035720','카카오','KOSPI 035720 · 카카오의 아고라 가상주식',33550,33550),
-('066570','LG전자','KOSPI 066570 · LG전자의 아고라 가상주식',216000,216000),
-('000270','기아','KOSPI 000270 · 기아의 아고라 가상주식',115400,115400),
-('068270','셀트리온','KOSPI 068270 · 셀트리온의 아고라 가상주식',150000,150000)
-on conflict(symbol) do update set
-  name=excluded.name,
-  description=excluded.description,
-  price=excluded.price,
-  previous_price=excluded.previous_price,
-  active=true,
-  updated_at=now();
+-- 아고라 시장의 가게를 주식 종목으로 사용합니다.
+-- 각 활성 가게마다 1개의 가상 주식이 만들어지며, 시작가는 1,000공입니다.
+-- 실제 금융상품이 아니며 아고라 내부의 가상 화폐 "공"으로만 거래됩니다.
 
--- 예전에 만들었던 가상 종목은 비활성화.
-update public.agora_stocks
-set active=false, updated_at=now()
-where symbol in ('AGR','RAIL','PIX','BYTE');
+alter table public.agora_stocks add column if not exists shop_id uuid references public.market_shops(id) on delete cascade;
+create unique index if not exists agora_stocks_shop_uidx on public.agora_stocks(shop_id) where shop_id is not null;
+update public.agora_stocks set active=false,updated_at=now() where shop_id is null;
 
--- 새 실제 기업 종목의 첫 가격 기록.
+insert into public.agora_stocks(symbol,shop_id,name,description,price,previous_price,active)
+select 'SHOP-'||left(replace(sh.id::text,'-',''),8),sh.id,sh.name,
+       '아고라 시장의 "'||sh.name||'" 가게 주식',1000,1000,true
+from public.market_shops sh
+where sh.active=true and not exists(select 1 from public.agora_stocks s where s.shop_id=sh.id);
+
 insert into public.agora_stock_history(stock_id,price)
-select s.id,s.price
-from public.agora_stocks s
-where s.active
-  and not exists (
-    select 1 from public.agora_stock_history h where h.stock_id=s.id
-  );
+select s.id,s.price from public.agora_stocks s
+where s.active and not exists(select 1 from public.agora_stock_history h where h.stock_id=s.id);
 
 drop function if exists public.stock_browse(text,text,text);
-create or replace function public.stock_browse(p_no text default '', p_pin text default '')
-returns jsonb
-language plpgsql
-security definer
-set search_path=''
+create or replace function public.stock_browse(p_no text default '',p_pin text default '')
+returns jsonb language plpgsql security definer set search_path=''
 as $$
-declare a public.bank_accounts;
-declare has_member boolean := false;
+declare a public.bank_accounts; declare has_member boolean:=false;
 begin
+  insert into public.agora_stocks(symbol,shop_id,name,description,price,previous_price,active)
+  select 'SHOP-'||left(replace(sh.id::text,'-',''),8),sh.id,sh.name,
+         '아고라 시장의 "'||sh.name||'" 가게 주식',1000,1000,true
+  from public.market_shops sh where sh.active=true
+    and not exists(select 1 from public.agora_stocks s where s.shop_id=sh.id);
+
   if coalesce(p_no,'')<>'' then
-    select * into a from public.bank_accounts
-    where account_no=p_no
-      and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
+    select * into a from public.bank_accounts where account_no=p_no and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
     if not found then raise exception '주식 로그인에 실패했습니다.'; end if;
-    has_member := true;
+    has_member:=true;
   end if;
 
-  return jsonb_build_object(
-    'stocks',coalesce((
-      select jsonb_agg(jsonb_build_object(
-        'id',s.id,'symbol',s.symbol,'name',s.name,'description',s.description,
-        'price',s.price,'previous_price',s.previous_price,
-        'change_percent',round(((s.price-s.previous_price)::numeric/nullif(s.previous_price,0))*100,2),
-        'updated_at',s.updated_at,
-        'history',coalesce((
-          select jsonb_agg(hx.price order by hx.recorded_at asc)
-          from (
-            select h.price,h.recorded_at
-            from public.agora_stock_history h
-            where h.stock_id=s.id
-            order by h.recorded_at desc
-            limit 20
-          ) hx
-        ),'[]'::jsonb),
-        'shares',case when has_member then coalesce((
-          select h.shares from public.agora_stock_holdings h
-          where h.account_id=a.id and h.stock_id=s.id
-        ),0) else 0 end,
-        'avg_buy_price',case when found and a.id is not null then coalesce((
-          select h.avg_buy_price from public.agora_stock_holdings h
-          where h.account_id=a.id and h.stock_id=s.id
-        ),0) else 0 end
-      ) order by s.symbol)
-      from public.agora_stocks s where s.active
-    ),'[]'::jsonb)
-  );
+  return jsonb_build_object('stocks',coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id',s.id,'symbol',s.symbol,'name',sh.name,
+      'description','아고라 시장의 "'||sh.name||'" 가게 주식','shop_id',sh.id,
+      'price',s.price,'previous_price',s.previous_price,
+      'change_percent',round(((s.price-s.previous_price)::numeric/nullif(s.previous_price,0))*100,2),
+      'updated_at',s.updated_at,
+      'history',coalesce((select jsonb_agg(hx.price order by hx.recorded_at asc)
+        from (select h.price,h.recorded_at from public.agora_stock_history h where h.stock_id=s.id order by h.recorded_at desc limit 20) hx),'[]'::jsonb),
+      'shares',case when has_member then coalesce((select h.shares from public.agora_stock_holdings h where h.account_id=a.id and h.stock_id=s.id),0) else 0 end,
+      'avg_buy_price',case when has_member then coalesce((select h.avg_buy_price from public.agora_stock_holdings h where h.account_id=a.id and h.stock_id=s.id),0) else 0 end
+    ) order by sh.name)
+    from public.agora_stocks s join public.market_shops sh on sh.id=s.shop_id and sh.active=true
+    where s.active=true
+  ),'[]'::jsonb));
 end;
 $$;
 
@@ -257,46 +226,33 @@ $$;
 
 drop function if exists public.stock_admin_list(text);
 create or replace function public.stock_admin_list(p_code text)
-returns jsonb
-language plpgsql
-security definer
-set search_path=''
+returns jsonb language plpgsql security definer set search_path=''
 as $$
 begin
   if not public.bank_admin_login(p_code) then raise exception '관리자 코드가 올바르지 않습니다.'; end if;
   return jsonb_build_object('stocks',coalesce((
-    select jsonb_agg(jsonb_build_object(
-      'id',s.id,'symbol',s.symbol,'name',s.name,'price',s.price,'previous_price',s.previous_price,
-      'change_percent',round(((s.price-s.previous_price)::numeric/nullif(s.previous_price,0))*100,2)
-    ) order by s.symbol) from public.agora_stocks s where s.active
+    select jsonb_agg(jsonb_build_object('id',s.id,'symbol',s.symbol,'name',sh.name,'price',s.price,'previous_price',s.previous_price,
+      'change_percent',round(((s.price-s.previous_price)::numeric/nullif(s.previous_price,0))*100,2)) order by sh.name)
+    from public.agora_stocks s join public.market_shops sh on sh.id=s.shop_id and sh.active=true
+    where s.active
   ),'[]'::jsonb));
 end;
 $$;
 
 drop function if exists public.stock_admin_change(text,uuid,numeric);
 create or replace function public.stock_admin_change(p_code text,p_stock_id uuid,p_percent numeric)
-returns jsonb
-language plpgsql
-security definer
-set search_path=''
+returns jsonb language plpgsql security definer set search_path=''
 as $$
-declare s public.agora_stocks;
-declare new_price bigint;
+declare s public.agora_stocks; declare new_price bigint;
 begin
   if not public.bank_admin_login(p_code) then raise exception '관리자 코드가 올바르지 않습니다.'; end if;
   if p_percent is null or p_percent < -90 or p_percent > 500 then raise exception '등락률은 -90%%에서 500%% 사이입니다.'; end if;
-
-  select * into s from public.agora_stocks where id=p_stock_id for update;
-  if not found then raise exception '주식을 찾을 수 없습니다.'; end if;
-
-  new_price := greatest(1,round(s.price*(1+p_percent/100.0))::bigint);
-
-  update public.agora_stocks
-  set previous_price=price,price=new_price,updated_at=now()
-  where id=s.id;
-
+  select st.* into s from public.agora_stocks st join public.market_shops sh on sh.id=st.shop_id and sh.active=true
+  where st.id=p_stock_id for update;
+  if not found then raise exception '활성화된 가게 주식을 찾을 수 없습니다.'; end if;
+  new_price:=greatest(1,round(s.price*(1+p_percent/100.0))::bigint);
+  update public.agora_stocks set previous_price=price,price=new_price,updated_at=now() where id=s.id;
   insert into public.agora_stock_history(stock_id,price) values(s.id,new_price);
-
   return jsonb_build_object('id',s.id,'price',new_price,'previous_price',s.price);
 end;
 $$;
@@ -314,6 +270,57 @@ grant execute on function public.stock_sell(text,text,uuid,bigint) to anon;
 grant execute on function public.stock_my_trades(text,text) to anon;
 grant execute on function public.stock_admin_list(text) to anon;
 grant execute on function public.stock_admin_change(text,uuid,numeric) to anon;
+
+grant usage on schema public to anon;
+notify pgrst,'reload schema';
+
+-- 시장 활동을 가게 주가에 자동 반영합니다.
+create or replace function public.agora_shop_stock_activity(p_shop_id uuid,p_percent numeric)
+returns void language plpgsql security definer set search_path=''
+as $$
+declare s public.agora_stocks; declare new_price bigint; declare bounded numeric;
+begin
+  bounded:=least(5,greatest(-5,p_percent));
+  select * into s from public.agora_stocks where shop_id=p_shop_id and active=true for update;
+  if not found then return; end if;
+  new_price:=greatest(1,round(s.price*(1+bounded/100.0))::bigint);
+  update public.agora_stocks set previous_price=price,price=new_price,updated_at=now() where id=s.id;
+  insert into public.agora_stock_history(stock_id,price) values(s.id,new_price);
+end;
+$$;
+
+create or replace function public.agora_shop_item_stock_trigger()
+returns trigger language plpgsql security definer set search_path=''
+as $$ begin perform public.agora_shop_stock_activity(new.shop_id,1); return new; end; $$;
+
+create or replace function public.agora_shop_purchase_stock_trigger()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare shop_id uuid;
+begin
+  select m.shop_id into shop_id from public.market_items m where m.id=new.item_id;
+  if shop_id is not null then perform public.agora_shop_stock_activity(shop_id,3); end if;
+  return new;
+end;
+$$;
+
+create or replace function public.agora_shop_like_stock_trigger()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare shop_id uuid;
+begin
+  select m.shop_id into shop_id from public.market_items m where m.id=coalesce(new.item_id,old.item_id);
+  if shop_id is not null then perform public.agora_shop_stock_activity(shop_id,case when tg_op='INSERT' then 0.5 else -0.5 end); end if;
+  if tg_op='DELETE' then return old; else return new; end if;
+end;
+$$;
+
+drop trigger if exists agora_stock_on_item on public.market_items;
+create trigger agora_stock_on_item after insert on public.market_items for each row execute function public.agora_shop_item_stock_trigger();
+drop trigger if exists agora_stock_on_purchase on public.market_purchases;
+create trigger agora_stock_on_purchase after insert on public.market_purchases for each row execute function public.agora_shop_purchase_stock_trigger();
+drop trigger if exists agora_stock_on_like on public.market_likes;
+create trigger agora_stock_on_like after insert or delete on public.market_likes for each row execute function public.agora_shop_like_stock_trigger();
 
 grant usage on schema public to anon;
 notify pgrst,'reload schema';
