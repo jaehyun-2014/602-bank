@@ -32,7 +32,7 @@ input{width:100%;padding:13px 14px;border:1px solid #ccd7e7;border-radius:11px;o
 .shop-more-menu.open{display:block}
 .shop-delete-btn{width:100%;border:0;background:#d92d20;color:#fff;border-radius:9px;padding:9px 12px;font-weight:900;cursor:pointer}
 .shop-delete-btn:hover{background:#b42318}.product-card{background:#fff;border:1px solid #dfe7f3;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px #102a4d0a}.product-preview{height:170px;background:#eaf1ff;display:flex;align-items:center;justify-content:center;overflow:hidden}.product-preview img{width:100%;height:100%;object-fit:cover}.product-preview .preview-text{font-size:30px;font-weight:900;color:#155eef}.product-body{padding:16px}.product-title{font-size:18px;font-weight:850;margin-bottom:6px}.product-desc{color:#66758b;font-size:13px;min-height:38px}.product-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:12px}.price{font-size:19px;font-weight:900}.market-actions{display:flex;gap:8px;margin-top:12px}.market-actions .btn{flex:1;padding:10px 12px}.like{background:#fff0ef;color:#b42318}.like.liked{background:#d92d20;color:#fff}.cart-badge{font-size:11px;background:#155eef;color:#fff;border-radius:999px;padding:3px 7px;margin-left:4px}.seller-box{background:#f6f8fc;border-radius:12px;padding:10px;margin-top:10px;font-size:12px;color:#52627a}.market-empty{text-align:center;padding:35px;color:#718096}.market-detail{position:fixed;inset:0;background:#0b1830aa;display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}.market-modal{background:#fff;border-radius:22px;max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:22px}.close{float:right;background:#eef3fb;padding:8px 11px;border-radius:9px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.market-small{font-size:12px;color:#718096}.transfer-list{margin-top:8px}.transfer-item{padding:14px 0;border-bottom:1px solid #edf1f7}.transfer-item:last-child{border-bottom:0}.transfer-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.transfer-meta{color:#718096;font-size:13px;margin-top:4px}.transfer-actions{display:flex;gap:8px;margin-top:10px}.transfer-status{font-size:12px;font-weight:800;padding:5px 8px;border-radius:8px;background:#eef3fb;color:#52627a}.transfer-status.pending{background:#fff8e6;color:#8a5a00}.transfer-status.accepted{background:#e9f8f1;color:#087443}.transfer-status.rejected{background:#fff0ef;color:#b42318}
-footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{display:none!important}
+footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-ads{margin-top:26px}.approved-ads-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.approved-ads-title b{font-size:13px;color:#52627a}.ad-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ad-card{display:block;background:#fff;border:1px solid #dfe7f3;border-radius:16px;padding:16px;text-decoration:none;color:inherit;box-shadow:0 6px 20px #102a4d0a;transition:.15s}.ad-card:hover{transform:translateY(-1px);box-shadow:0 10px 25px #102a4d12}.ad-label{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.8px;color:#087443;background:#e9f8f1;border-radius:999px;padding:4px 7px;margin-bottom:9px}.ad-title{font-size:16px;font-weight:900}.ad-desc{font-size:12px;color:#66758b;margin-top:5px;line-height:1.5}.ad-sponsor{font-size:11px;color:#8a95a5;margin-top:9px}.ad-empty{background:#f8fafc;border:1px dashed #cfd9e8;border-radius:14px;padding:15px;text-align:center;color:#8793a5;font-size:12px}.theme-dark .ad-card{background:#181a1f!important;color:#e7e9ee!important;border-color:#30343d!important}.theme-dark .ad-desc,.theme-dark .ad-sponsor{color:#a5adba!important}.theme-xp .ad-card{border:2px solid #7b9ac6!important;border-radius:7px!important;box-shadow:2px 2px 0 #7b7b7b!important}.theme-xp .ad-empty{border-radius:5px!important}.theme-retro .ad-card{border-radius:4px!important;border:2px solid #71865a!important;box-shadow:3px 3px 0 #7d8d69!important}.theme-green .ad-card{border-color:#cfe9da!important}.hidden{display:none!important}
 @media(max-width:720px){.grid,.stats,.market-grid{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
 @media(max-width:480px){.market-grid,.form-grid{grid-template-columns:1fr}.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
 </style>
@@ -47,6 +47,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{di
 <div class="panel"><div class="eyebrow">BANKING</div><h2>아고라 은행</h2><p class="muted">계좌 조회, 입·출금, 회원 간 송금과 송금 받기를 이용합니다.</p><button class="btn blue" onclick="show('student')">은행 들어가기</button></div>
 <div class="panel"><div class="eyebrow">MARKET</div><h2>아고라 시장</h2><p class="muted">회원이 만든 템플릿과 자료를 등록하고 공으로 사고팔 수 있습니다.</p><button class="btn blue" onclick="show('market');loadMarket()">시장 들어가기</button></div>
 </div>
+<div id="approvedAds" class="approved-ads"></div>
 </section>
 
 <section id="market" class="hidden">
@@ -89,6 +90,20 @@ try{
 }
 let currentMember=null;
 let adminCode=null;
+
+// 관리자에게 허가된 광고만 이 목록에 추가하면 홈 화면 하단에 표시됩니다.
+const AGORA_APPROVED_ADS=[];
+function renderApprovedAds(){
+ const el=document.getElementById("approvedAds");
+ if(!el)return;
+ const ads=AGORA_APPROVED_ADS.filter(a=>a&&a.approved);
+ if(!ads.length){el.innerHTML="";return;}
+ el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>허가 광고</b></div><div class="ad-list">' + ads.map(a=>{
+   const href=esc(a.url||"#");
+   const target=a.url?" target="_blank" rel="noopener noreferrer"":"";
+   return '<a class="ad-card" href="'+href+'"'+target+'><span class="ad-label">허가 광고</span><div class="ad-title">'+esc(a.title||"광고")+'</div><div class="ad-desc">'+esc(a.description||"")+'</div><div class="ad-sponsor">'+esc(a.sponsor||"광고주")+'</div></a>';
+ }).join("")+"</div>";
+}
 
 function show(id){['home','student','market','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
 const AGORA_THEMES={blue:'기본 블루',dark:'다크',green:'그린',retro:'레트로',xp:'Windows XP',reset:'기본 블루'};
@@ -667,6 +682,7 @@ function historyHTML(tx){
 </body>
 </html>
 <script>
+renderApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js?v=15', {updateViaCache: 'none'}).catch(err => {
