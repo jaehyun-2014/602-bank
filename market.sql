@@ -819,3 +819,66 @@ grant execute on function public.market_create_item(text,text,uuid,text,text,tex
 grant execute on function public.market_browse(text,text,text) to anon;
 
 notify pgrst,'reload schema';
+
+
+-- 자신의 가게 삭제
+create or replace function public.market_delete_shop(
+  p_no text,p_pin text,p_shop_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare a public.bank_accounts;
+declare sh public.market_shops;
+declare item_count bigint:=0;
+begin
+  select * into a
+  from public.bank_accounts
+  where account_no=p_no
+    and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
+  if not found then
+    raise exception '본인확인에 실패했습니다.';
+  end if;
+
+  select * into sh
+  from public.market_shops
+  where id=p_shop_id
+    and owner_account_id=a.id
+    and active=true
+  for update;
+
+  if not found then
+    raise exception '삭제할 가게를 찾을 수 없습니다.';
+  end if;
+
+  select count(*) into item_count
+  from public.market_items
+  where shop_id=sh.id and active=true;
+
+  update public.market_shops
+  set active=false
+  where id=sh.id;
+
+  update public.market_items
+  set active=false
+  where shop_id=sh.id;
+
+  delete from public.market_cart
+  where item_id in (
+    select id from public.market_items where shop_id=sh.id
+  );
+
+  return jsonb_build_object(
+    'shop_id',sh.id,
+    'name',sh.name,
+    'item_count',item_count
+  );
+end;
+$$;
+
+revoke execute on function public.market_delete_shop(text,text,uuid) from public,authenticated;
+grant execute on function public.market_delete_shop(text,text,uuid) to anon;
+grant usage on schema public to anon;
+notify pgrst,'reload schema';
