@@ -651,6 +651,7 @@ function renderStudent(){
   <div class="panel"><div class="eyebrow">MY ACCOUNT</div><h1 style="margin:5px 0">${esc(a.name)}</h1><p class="muted">${esc(a.no)}</p></div>
   <div class="balance"><span>현재 잔액</span><strong>${Number(a.balance).toLocaleString()}공</strong></div>
  </div>
+ <div class="panel"><div class="eyebrow">AGORA ECONOMY</div><h2>경제점수 · 신용정보</h2><p class="muted">학급용 가상경제 지표입니다. 실제 금융기관의 신용평가와는 무관합니다.</p><div id="economyInfo"><p class="muted">경제정보를 불러오는 중...</p></div></div>
  <div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p>
   <input id="amt" type="number" min="1" placeholder="금액">
   <div class="two">
