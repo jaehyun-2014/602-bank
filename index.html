@@ -270,51 +270,58 @@ async function uploadMarketFile(file,folder){
  return pub.data.publicUrl;
 }
 
-async function loadMarketShop(){
- if(!currentMember)return null;
- const {data,error}=await supabaseClient.rpc('market_my_shop',{p_no:currentMember.no,p_pin:currentMember.pin});
+async function loadMarketShops(){
+ if(!currentMember)return [];
+ const {data,error}=await supabaseClient.rpc('market_my_shops',{p_no:currentMember.no,p_pin:currentMember.pin});
  if(error)throw error;
- return data?.shop||null;
+ return data?.shops||[];
+}
+async function loadMarketShop(){
+ const shops=await loadMarketShops();
+ return shops[0]||null;
 }
 async function openSellForm(){
  if(!currentMember){openMarketLogin();return;}
- let shop=null;
- try{shop=await loadMarketShop();}catch(e){msg('marketNotice',e?.message||'가게 정보를 불러오지 못했습니다.',true);return;}
+ let shops=[];
+ try{shops=await loadMarketShops();}catch(e){msg('marketNotice',e?.message||'가게 정보를 불러오지 못했습니다.',true);return;}
  const old=document.getElementById('marketModal');if(old)old.remove();
  const modal=document.createElement('div');modal.id='marketModal';modal.className='market-detail';
-
- if(!shop){
-   modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">MY SHOP</div><h2>내 가게 세우기</h2><p class="muted">아고라 시장에서 판매하려면 먼저 자신의 가게를 세워야 합니다.</p><div class="notice">가게 설립 비용은 <b>1,000공</b>입니다. 가게를 세우는 순간 계좌에서 1,000공이 차감됩니다.</div><input id="shopName" placeholder="가게 이름"><input id="shopDesc" placeholder="가게 소개"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketShop()">1,000공 내고 가게 세우기</button><div id="shopMsg"></div></div>';
- }else{
-   modal.innerHTML='<div class="market-modal" style="max-width:760px"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">MY SHOP</div><h2 style="margin:6px 0">내 가게</h2><div class="shop-card" style="cursor:default;margin-top:14px"><div class="shop-icon"><span>AGORA</span></div><div class="shop-name">'+esc(shop.name)+'</div><div class="shop-owner">판매자 · '+esc(currentMember.account.name)+'</div><div class="shop-desc">'+esc(shop.description||'가게 소개가 없습니다.')+'</div><div class="shop-meta"><span>현재 잔액</span><b>'+Number(currentMember.account.balance).toLocaleString()+'공</b></div></div><div class="actions" style="margin-top:16px"><button class="btn green" style="flex:1" onclick="openMarketProductForm()">상품 등록</button></div><div id="shopProductArea"></div></div>';
- }
+ const shopCards=shops.length?shops.map((shop,i)=>'<div class="shop-card" style="cursor:default;margin-top:12px"><div class="shop-icon"><span>AGORA</span></div><div class="shop-name">'+esc(shop.name)+'</div><div class="shop-owner">상품 '+Number(shop.product_count||0)+'개</div><div class="shop-desc">'+esc(shop.description||'가게 소개가 없습니다.')+'</div><button class="btn green shop-enter" onclick="openMarketProductForm(\\''+esc(shop.id)+'\\')">이 가게에 상품 등록</button></div>').join(''):'<div class="market-empty">아직 만든 가게가 없습니다.</div>';
+ modal.innerHTML='<div class="market-modal" style="max-width:800px"><button class="close" onclick="this.closest(\\'.market-detail\\').remove()">닫기</button><div class="eyebrow">MY SHOPS</div><h2 style="margin:6px 0">내 가게</h2><p class="muted">가게는 여러 개 만들 수 있습니다. 새 가게를 만들 때마다 1,000공이 필요합니다.</p><div id="myShopList">'+shopCards+'</div><button class="btn blue" style="width:100%;margin-top:18px" onclick="openNewShopForm()">+ 새로운 가게 세우기</button><div id="newShopArea"></div></div>';
  document.body.appendChild(modal);
 }
 
-function openMarketProductForm(){
- const area=document.getElementById('shopProductArea');
+function openNewShopForm(){
+ const area=document.getElementById('newShopArea');
  if(!area)return;
- area.innerHTML='<div class="panel" style="margin-top:18px;padding:18px"><h3 style="margin-top:0">상품 등록</h3><p class="market-small">판매할 자료와 상품 정보를 입력하세요.</p><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreviewFile" type="file" accept="image/*"></div><div class="market-small">미리보기 이미지</div><input id="sellPreview" placeholder="또는 미리보기 이미지 URL"><input id="sellFile" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.html,.css,.js,image/*"><div class="market-small">판매할 파일 (최대 10MB)</div><input id="sellUrl" placeholder="또는 기존 상품/다운로드 링크"><input id="sellDesc" placeholder="짧은 설명"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">파일 올리고 상품 등록</button><div id="sellMsg"></div></div>';
+ area.innerHTML='<div class="panel" style="margin-top:18px;padding:18px"><h3 style="margin-top:0">새로운 가게 세우기</h3><div class="notice">새 가게 하나를 만드는 데 <b>1,000공</b>이 필요합니다.</div><input id="shopName" placeholder="새 가게 이름"><input id="shopDesc" placeholder="새 가게 소개"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketShop()">1,000공 내고 새 가게 세우기</button><div id="shopMsg"></div></div>';
+ area.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function openMarketProductForm(shopId){
+ const area=document.getElementById('newShopArea')||document.getElementById('shopProductArea');
+ if(!area)return;
+ area.innerHTML='<div class="panel" style="margin-top:18px;padding:18px"><h3 style="margin-top:0">상품 등록</h3><p class="market-small">선택한 가게에 상품을 등록합니다.</p><input id="sellShopId" type="hidden" value="'+esc(shopId)+'"><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreviewFile" type="file" accept="image/*"></div><div class="market-small">미리보기 이미지</div><input id="sellPreview" placeholder="또는 미리보기 이미지 URL"><input id="sellFile" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.html,.css,.js,image/*"><div class="market-small">판매할 파일 (최대 10MB)</div><input id="sellUrl" placeholder="또는 기존 상품/다운로드 링크"><input id="sellDesc" placeholder="짧은 설명"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">파일 올리고 상품 등록</button><div id="sellMsg"></div></div>';
  area.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 async function createMarketShop(){
  if(!currentMember)return;
- const name=document.getElementById('shopName').value.trim(),desc=document.getElementById('shopDesc').value.trim();
+ const name=document.getElementById('shopName')?.value.trim(),desc=document.getElementById('shopDesc')?.value.trim();
  if(!name)return msg('shopMsg','가게 이름을 입력하세요.',true);
- if(!confirm('가게를 세우는 데 1,000공이 필요합니다. 계속할까요?'))return;
+ if(!confirm('새 가게를 세우는 데 1,000공이 필요합니다. 계속할까요?'))return;
  const {data,error}=await supabaseClient.rpc('market_create_shop',{p_no:currentMember.no,p_pin:currentMember.pin,p_name:name,p_description:desc});
  if(error||!data)return msg('shopMsg',error?.message||'가게 설립에 실패했습니다.',true);
  currentMember.account.balance=Number(data.balance);
- document.getElementById('marketModal')?.remove();
  updateMarketAccount();
+ document.getElementById('marketModal')?.remove();
  await openSellForm();
- msg('marketNotice','가게가 세워졌습니다! 이제 상품을 등록할 수 있습니다.');
+ msg('marketNotice','새로운 가게가 세워졌습니다!');
 }
 
 async function createMarketItem(){
- const shop=await loadMarketShop().catch(()=>null);
- if(!shop)return msg('sellMsg','먼저 가게를 세워야 상품을 등록할 수 있습니다.',true);
+ const shopId=document.getElementById('sellShopId')?.value;
+ if(!shopId)return msg('sellMsg','상품을 등록할 가게를 선택하세요.',true);
  const title=document.getElementById('sellTitle').value.trim();
  const price=Number(document.getElementById('sellPrice').value);
  const category=document.getElementById('sellCategory').value.trim()||'기타';
@@ -330,7 +337,7 @@ async function createMarketItem(){
    let preview=previewInput;
    if(previewFile)preview=await uploadMarketFile(previewFile,'previews');
    if(productFile)url=await uploadMarketFile(productFile,'products');
-   const {data,error}=await supabaseClient.rpc('market_create_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_title:title,p_description:desc,p_category:category,p_price:price,p_preview_url:preview,p_download_url:url});
+   const {data,error}=await supabaseClient.rpc('market_create_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_shop_id:shopId,p_title:title,p_description:desc,p_category:category,p_price:price,p_preview_url:preview,p_download_url:url});
    if(error)throw error;
    document.getElementById('marketModal')?.remove();
    await loadMarket();
