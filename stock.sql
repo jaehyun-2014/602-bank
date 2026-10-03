@@ -50,19 +50,40 @@ revoke all on table public.agora_stock_history from anon, authenticated;
 revoke all on table public.agora_stock_holdings from anon, authenticated;
 revoke all on table public.agora_stock_trades from anon, authenticated;
 
+-- 실제 상장기업 기반 종목.
+-- 회사/종목코드는 실제 KRX 종목을 사용하지만, 매수·매도는 아고라 내부의 가상 화폐 "공"으로만 처리합니다.
+-- 아래 가격은 초기 표시값이며 실시간 시세 API가 아니라 아고라 내부 시뮬레이션 가격입니다.
 insert into public.agora_stocks(symbol,name,description,price,previous_price)
 values
-('AGR','아고라 홀딩스','아고라 케피털 가상경제의 대표 기업',1000,1000),
-('RAIL','아고라 레일','철도·교통 분야 가상 기업',1500,1500),
-('PIX','픽셀웍스','디자인·디지털 콘텐츠 가상 기업',800,800),
-('BYTE','바이트랩','소프트웨어·도구 분야 가상 기업',1200,1200)
-on conflict(symbol) do nothing;
+('005930','삼성전자','KOSPI 005930 · 삼성전자의 아고라 가상주식',276000,276000),
+('000660','SK하이닉스','KOSPI 000660 · SK하이닉스의 아고라 가상주식',1841000,1841000),
+('005380','현대차','KOSPI 005380 · 현대자동차의 아고라 가상주식',345000,345000),
+('035420','NAVER','KOSPI 035420 · NAVER의 아고라 가상주식',192200,192200),
+('035720','카카오','KOSPI 035720 · 카카오의 아고라 가상주식',33550,33550),
+('066570','LG전자','KOSPI 066570 · LG전자의 아고라 가상주식',216000,216000),
+('000270','기아','KOSPI 000270 · 기아의 아고라 가상주식',115400,115400),
+('068270','셀트리온','KOSPI 068270 · 셀트리온의 아고라 가상주식',150000,150000)
+on conflict(symbol) do update set
+  name=excluded.name,
+  description=excluded.description,
+  price=excluded.price,
+  previous_price=excluded.previous_price,
+  active=true,
+  updated_at=now();
 
+-- 예전에 만들었던 가상 종목은 비활성화.
+update public.agora_stocks
+set active=false, updated_at=now()
+where symbol in ('AGR','RAIL','PIX','BYTE');
+
+-- 새 실제 기업 종목의 첫 가격 기록.
 insert into public.agora_stock_history(stock_id,price)
-select id,price from public.agora_stocks s
-where not exists (
-  select 1 from public.agora_stock_history h where h.stock_id=s.id
-);
+select s.id,s.price
+from public.agora_stocks s
+where s.active
+  and not exists (
+    select 1 from public.agora_stock_history h where h.stock_id=s.id
+  );
 
 drop function if exists public.stock_browse(text,text,text);
 create or replace function public.stock_browse(p_no text default '', p_pin text default '')
@@ -247,7 +268,7 @@ begin
     select jsonb_agg(jsonb_build_object(
       'id',s.id,'symbol',s.symbol,'name',s.name,'price',s.price,'previous_price',s.previous_price,
       'change_percent',round(((s.price-s.previous_price)::numeric/nullif(s.previous_price,0))*100,2)
-    ) order by s.symbol) from public.agora_stocks s
+    ) order by s.symbol) from public.agora_stocks s where s.active
   ),'[]'::jsonb));
 end;
 $$;
