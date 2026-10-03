@@ -58,7 +58,8 @@ begin
  select * into l from public.bank_loans where id=p_loan_id and account_id=a.id and status='approved' for update;
  if not found then raise exception '상환할 수 있는 대출이 없습니다.'; end if;
  if a.balance < p_amount then raise exception '잔액이 부족합니다.'; end if;
- new_remaining:=greatest(0,l.remaining-p_amount);
+ if p_amount > l.remaining then raise exception '상환 금액이 남은 대출금보다 많습니다.'; end if;
+ new_remaining:=l.remaining-p_amount;
  update public.bank_accounts set balance=balance-p_amount where id=a.id;
  insert into public.bank_transactions(account_id,type,amount) values(a.id,'withdraw',p_amount);
  update public.bank_loans set remaining=new_remaining,status=case when new_remaining=0 then 'paid' else 'approved' end,paid_at=case when new_remaining=0 then now() else null end where id=l.id;
