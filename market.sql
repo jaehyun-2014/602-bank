@@ -53,7 +53,7 @@ revoke all on table public.market_likes from anon, authenticated;
 revoke all on table public.market_cart from anon, authenticated;
 revoke all on table public.market_purchases from anon, authenticated;
 
-create or replace function public.market_browse(p_category text default 'all')
+create or replace function public.market_browse(p_category text default 'all', p_no text default '', p_pin text default '')
 returns jsonb
 language plpgsql
 security definer
@@ -74,7 +74,7 @@ begin
           'download_url',m.download_url,
           'seller_name',a.name,
           'like_count',(select count(*) from public.market_likes l where l.item_id=m.id),
-          'liked',false
+          'liked',exists(select 1 from public.market_likes l2 where l2.item_id=m.id and l2.account_id=(select id from public.bank_accounts where account_no=p_no and pin_hash=encode(extensions.digest(p_pin,\'sha256\'),\'hex\') limit 1))
         )
         order by m.created_at desc
       )
@@ -356,7 +356,7 @@ begin
 end;
 $$;
 
-revoke execute on function public.market_browse(text) from public,authenticated;
+revoke execute on function public.market_browse(text,text,text) from public,authenticated;
 revoke execute on function public.market_toggle_like(text,text,uuid) from public,authenticated;
 revoke execute on function public.market_cart_add(text,text,uuid) from public,authenticated;
 revoke execute on function public.market_cart_remove(text,text,uuid) from public,authenticated;
@@ -365,7 +365,7 @@ revoke execute on function public.market_create_item(text,text,text,text,text,bi
 revoke execute on function public.market_purchase_item(text,text,uuid) from public,authenticated;
 revoke execute on function public.market_purchase_cart(text,text) from public,authenticated;
 
-grant execute on function public.market_browse(text) to anon;
+grant execute on function public.market_browse(text,text,text) to anon;
 grant execute on function public.market_toggle_like(text,text,uuid) to anon;
 grant execute on function public.market_cart_add(text,text,uuid) to anon;
 grant execute on function public.market_cart_remove(text,text,uuid) to anon;
