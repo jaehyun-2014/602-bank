@@ -108,7 +108,7 @@ function renderApprovedAds(){
  if(!ads.length){el.innerHTML="";return;}
  el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>허가 광고</b></div><div class="ad-list">'+ads.map(a=>{
    const href=esc(a.url||"#");
-   const target=a.url?" target="_blank" rel="noopener noreferrer":"";
+   const target=a.url ? ' target="_blank" rel="noopener noreferrer"' : '';
    return '<a class="ad-card" href="'+href+'"'+target+'><span class="ad-label">허가 광고</span><div class="ad-title">'+esc(a.title||"광고")+'</div><div class="ad-desc">'+esc(a.description||"")+'</div><div class="ad-sponsor">'+esc(a.sponsor||"광고주")+'</div></a>';
  }).join("")+"</div>";
 }
