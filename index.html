@@ -82,7 +82,7 @@ try{
 let currentMember=null;
 let adminCode=null;
 
-function show(id){['home','student','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+function show(id){['home','student','market','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
 function msg(id,t,err=false){const el=document.getElementById(id);if(el)el.innerHTML='<div class="notice '+(err?'error':'')+'">'+esc(t)+'</div>'}
 function requireSupabase(target){
   if(supabaseReady&&supabaseClient)return true;
@@ -197,20 +197,50 @@ async function buyCart(){
  await refreshMember();await refreshCartCount();document.getElementById('marketModal')?.remove();await loadMarket();
 }
 
+async function uploadMarketFile(file,folder){
+ if(!file)return '';
+ const max=10*1024*1024;
+ if(file.size>max)throw new Error('파일은 10MB 이하만 올릴 수 있습니다.');
+ const safe=file.name.replace(/[^0-9A-Za-z가-힣._-]/g,'_');
+ const path=folder+'/'+crypto.randomUUID()+'-'+safe;
+ const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||'application/octet-stream'});
+ if(error)throw error;
+ const pub=supabaseClient.storage.from('market-files').getPublicUrl(data.path);
+ return pub.data.publicUrl;
+}
+
 function openSellForm(){
  if(!currentMember){openMarketLogin();return;}
  const old=document.getElementById('marketModal');if(old)old.remove();
  const modal=document.createElement('div');modal.id='marketModal';modal.className='market-detail';
- modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">SELL</div><h2>상품 등록</h2><p class="muted">상품 설명, 미리보기 이미지 주소, 자료 링크를 등록할 수 있습니다.</p><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreview" placeholder="미리보기 이미지 URL"></div><input id="sellDesc" placeholder="짧은 설명"><input id="sellUrl" placeholder="상품/다운로드 링크"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">시장에 등록</button><div id="sellMsg"></div></div>';
+ modal.innerHTML='<div class="market-modal"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">SELL</div><h2>상품 등록</h2><p class="muted">이제 컴퓨터에서 파일을 직접 올릴 수 있습니다. 미리보기 이미지와 판매 파일을 선택하세요.</p><div class="form-grid"><input id="sellTitle" placeholder="상품 이름"><input id="sellPrice" type="number" min="0" placeholder="가격(공)"><input id="sellCategory" placeholder="분류 예: 템플릿"><input id="sellPreviewFile" type="file" accept="image/*"></div><div class="market-small">미리보기 이미지</div><input id="sellPreview" placeholder="또는 미리보기 이미지 URL"><input id="sellFile" type="file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.html,.css,.js,image/*"><div class="market-small">판매할 파일 (최대 10MB)</div><input id="sellUrl" placeholder="또는 기존 상품/다운로드 링크"><input id="sellDesc" placeholder="짧은 설명"><button class="btn green" style="width:100%;margin-top:8px" onclick="createMarketItem()">파일 올리고 시장에 등록</button><div id="sellMsg"></div></div>';
  document.body.appendChild(modal);
 }
 
 async function createMarketItem(){
- const title=document.getElementById('sellTitle').value.trim(),price=Number(document.getElementById('sellPrice').value),category=document.getElementById('sellCategory').value.trim()||'기타',preview=document.getElementById('sellPreview').value.trim(),desc=document.getElementById('sellDesc').value.trim(),url=document.getElementById('sellUrl').value.trim();
+ const title=document.getElementById('sellTitle').value.trim();
+ const price=Number(document.getElementById('sellPrice').value);
+ const category=document.getElementById('sellCategory').value.trim()||'기타';
+ const previewInput=document.getElementById('sellPreview').value.trim();
+ const previewFile=document.getElementById('sellPreviewFile').files[0];
+ const productFile=document.getElementById('sellFile').files[0];
+ const desc=document.getElementById('sellDesc').value.trim();
+ let url=document.getElementById('sellUrl').value.trim();
  if(!title||!desc||!Number.isInteger(price)||price<0)return msg('sellMsg','상품 이름, 설명, 가격을 확인하세요.',true);
- const {data,error}=await supabaseClient.rpc('market_create_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_title:title,p_description:desc,p_category:category,p_price:price,p_preview_url:preview,p_download_url:url});
- if(error||!data)return msg('sellMsg',error?.message||'상품 등록에 실패했습니다.',true);
- document.getElementById('marketModal')?.remove();await loadMarket();msg('marketNotice','상품이 시장에 등록되었습니다.');
+ if(!productFile&&!url)return msg('sellMsg','판매할 파일을 선택하거나 상품 링크를 입력하세요.',true);
+ try{
+   msg('sellMsg','파일을 업로드하는 중입니다...');
+   let preview=previewInput;
+   if(previewFile)preview=await uploadMarketFile(previewFile,'previews');
+   if(productFile)url=await uploadMarketFile(productFile,'products');
+   const {data,error}=await supabaseClient.rpc('market_create_item',{p_no:currentMember.no,p_pin:currentMember.pin,p_title:title,p_description:desc,p_category:category,p_price:price,p_preview_url:preview,p_download_url:url});
+   if(error)throw error;
+   document.getElementById('marketModal')?.remove();
+   await loadMarket();
+   msg('marketNotice','상품과 파일이 아고라 시장에 등록되었습니다.');
+ }catch(e){
+   msg('sellMsg',e?.message||'파일 업로드 또는 상품 등록에 실패했습니다.',true);
+ }
 }
 
 async function refreshMember(){
@@ -443,7 +473,7 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=7', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=8', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
