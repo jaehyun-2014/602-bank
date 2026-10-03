@@ -23,7 +23,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 input{width:100%;padding:13px 14px;border:1px solid #ccd7e7;border-radius:11px;outline:0;background:#fff;margin:6px 0 10px}input:focus{border-color:#4c8bf5;box-shadow:0 0 0 3px #4c8bf51c}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.top a{color:#1255c5;text-decoration:none;font-weight:800}.muted{color:#66758b;font-size:14px}.balance{background:linear-gradient(135deg,#123a83,#2174e8);color:#fff;border-radius:18px;padding:24px}.balance span{opacity:.75}.balance strong{display:block;font-size:34px;margin-top:8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:#fff;border:1px solid #dfe7f3;border-radius:16px;padding:18px}.stat span{display:block;color:#718096;font-size:13px}.stat b{display:block;margin-top:5px;font-size:21px}
-.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.account-actions{display:flex;align-items:center;gap:8px}.edit{color:#155eef;background:#eef4ff;font-size:13px;font-weight:800;padding:8px 10px;border-radius:9px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}
+.account{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid #edf1f7}.account:last-child{border-bottom:0}.account small{display:block;color:#718096;margin-top:3px}.account-actions{display:flex;align-items:center;gap:8px}.edit{color:#155eef;background:#eef4ff;font-size:13px;font-weight:800;padding:8px 10px;border-radius:9px}.tx{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1f7}.tx:last-child{border-bottom:0}.tx small{display:block;color:#718096;margin-top:3px}.income{color:#087443}.expense{color:#b42318}.danger{color:#b42318;background:none;font-size:13px;font-weight:700}.transfer-list{margin-top:8px}.transfer-item{padding:14px 0;border-bottom:1px solid #edf1f7}.transfer-item:last-child{border-bottom:0}.transfer-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.transfer-meta{color:#718096;font-size:13px;margin-top:4px}.transfer-actions{display:flex;gap:8px;margin-top:10px}.transfer-status{font-size:12px;font-weight:800;padding:5px 8px;border-radius:8px;background:#eef3fb;color:#52627a}.transfer-status.pending{background:#fff8e6;color:#8a5a00}.transfer-status.accepted{background:#e9f8f1;color:#087443}.transfer-status.rejected{background:#fff0ef;color:#b42318}
 footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.hidden{display:none!important}
 @media(max-width:720px){.grid,.stats{grid-template-columns:1fr 1fr}.hero{padding:34px 24px}.hero h1{font-size:48px}}
 @media(max-width:480px){.wrap{padding:18px 12px 40px}.grid,.stats{grid-template-columns:1fr}.hero{border-radius:20px}.actions .btn{width:100%}.balance strong{font-size:29px}}
@@ -88,7 +88,7 @@ async function studentLogin(){
  if(!no||!name||!/^[0-9]{4,8}$/.test(pin))return msg('smsg','계좌번호, 이름, 고유번호를 확인하세요.',true);
  const {data,error}=await supabaseClient.rpc('bank_member_login',{p_no:no,p_name:name,p_pin:pin});
  if(error||!data)return msg('smsg',error?.message||'본인확인에 실패했습니다.',true);
- currentMember={no,pin,account:data.account,tx:data.tx||[]};
+ currentMember={no,pin,account:data.account,tx:data.tx||[],transfers:data.transfers||[]};
  renderStudent();
 }
 
@@ -109,6 +109,13 @@ function renderStudent(){
   </div>
   <div id="txmsg"></div>
  </div>
+ <div class="panel"><h2>송금</h2><p class="muted">상대방의 정확한 회원 이름과 송금액을 입력하세요. 송금하면 내 잔액에서는 즉시 빠지고, 상대방이 <b>받기</b>를 눌러야 최종 입금됩니다.</p>
+  <input id="transferName" placeholder="받는 사람 이름">
+  <input id="transferAmt" type="number" min="1" placeholder="송금 금액">
+  <button class="btn blue" style="width:100%" onclick="sendTransfer()">송금하기</button>
+  <div id="transferMsg"></div>
+ </div>
+ <div class="panel"><h2>송금 대기 / 내 송금내역</h2><div id="transferList">${transferHTML(currentMember.transfers||[],currentMember.account.id)}</div></div>
  <div class="panel"><h2>내 거래내역</h2><div id="history">${historyHTML(currentMember.tx)}</div></div>
  <button class="btn ghost" onclick="studentLogout()">나가기</button>`;
 }
@@ -123,9 +130,86 @@ async function studentTx(type){
  if(error||!data)return msg('txmsg',error?.message||'거래에 실패했습니다.',true);
  const login=await supabaseClient.rpc('bank_member_login',{p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin});
  if(login.error||!login.data)return msg('txmsg','거래는 완료됐지만 계좌 새로고침에 실패했습니다.',true);
- currentMember.account=login.data.account;currentMember.tx=login.data.tx||[];
+ currentMember.account=login.data.account;currentMember.tx=login.data.tx||[];currentMember.transfers=login.data.transfers||[];
  renderStudent();
  msg('txmsg',type==='deposit'?'입금 완료':'출금 완료');
+}
+
+
+async function sendTransfer(){
+ if(!requireSupabase('transferMsg'))return;
+ const name=document.getElementById('transferName').value.trim();
+ const amt=Number(document.getElementById('transferAmt').value);
+ if(!name)return msg('transferMsg','받는 사람 이름을 입력하세요.',true);
+ if(!Number.isInteger(amt)||amt<1)return msg('transferMsg','1공 이상의 송금액을 입력하세요.',true);
+ if(name===currentMember.account.name)return msg('transferMsg','자기 자신에게는 송금할 수 없습니다.',true);
+ if(!confirm(name+'님에게 '+amt.toLocaleString()+'공을 송금할까요?'))return;
+ const {data,error}=await supabaseClient.rpc('bank_transfer_send',{
+   p_sender_no:currentMember.no,
+   p_sender_pin:currentMember.pin,
+   p_recipient_name:name,
+   p_amount:amt
+ });
+ if(error||!data)return msg('transferMsg',error?.message||'송금 요청에 실패했습니다.',true);
+ const login=await supabaseClient.rpc('bank_member_login',{
+   p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin
+ });
+ if(login.error||!login.data)return msg('transferMsg','송금 요청은 접수됐지만 계좌 새로고침에 실패했습니다.',true);
+ currentMember.account=login.data.account;
+ currentMember.tx=login.data.tx||[];
+ currentMember.transfers=login.data.transfers||[];
+ renderStudent();
+}
+
+async function acceptTransfer(id){
+ if(!requireSupabase('transferList'))return;
+ const {data,error}=await supabaseClient.rpc('bank_transfer_accept',{
+   p_no:currentMember.no,
+   p_pin:currentMember.pin,
+   p_transfer_id:id
+ });
+ if(error||!data)return msg('transferList',error?.message||'송금 받기에 실패했습니다.',true);
+ await refreshStudentAfterTransfer('송금액을 받았습니다.');
+}
+
+async function rejectTransfer(id){
+ if(!requireSupabase('transferList'))return;
+ if(!confirm('이 송금을 받지 않고 거절할까요? 송금액은 보낸 사람에게 자동으로 반환됩니다.'))return;
+ const {data,error}=await supabaseClient.rpc('bank_transfer_reject',{
+   p_no:currentMember.no,
+   p_pin:currentMember.pin,
+   p_transfer_id:id
+ });
+ if(error||!data)return msg('transferList',error?.message||'송금 거절에 실패했습니다.',true);
+ await refreshStudentAfterTransfer('송금을 거절했습니다. 송금액은 보낸 사람에게 반환되었습니다.');
+}
+
+async function refreshStudentAfterTransfer(notice){
+ const login=await supabaseClient.rpc('bank_member_login',{
+   p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin
+ });
+ if(login.error||!login.data)return msg('transferList','처리됐지만 계좌 새로고침에 실패했습니다.',true);
+ currentMember.account=login.data.account;
+ currentMember.tx=login.data.tx||[];
+ currentMember.transfers=login.data.transfers||[];
+ renderStudent();
+ if(notice)alert(notice);
+}
+
+function transferHTML(list,currentId){
+ if(!list.length)return '<p class="muted">송금내역이 없습니다.</p>';
+ return list.map(t=>{
+   const incoming=String(t.receiver_id)===String(currentId);
+   const status=t.status;
+   const label=incoming?'받는 사람':'보낸 사람';
+   const other=incoming?t.sender_name:t.receiver_name;
+   const amount=Number(t.amount).toLocaleString();
+   let action='';
+   if(incoming&&status==='pending'){
+     action='<div class="transfer-actions"><button class="btn green" onclick="acceptTransfer(\\''+esc(t.id)+'\\')">받기</button><button class="btn ghost" onclick="rejectTransfer(\\''+esc(t.id)+'\\')">거절</button></div>';
+   }
+   return '<div class="transfer-item"><div class="transfer-top"><div><b>'+esc(other)+'</b><div class="transfer-meta">'+label+' · '+esc(t.date)+'</div></div><div><strong>'+amount+'공</strong><div class="transfer-status '+esc(status)+'">'+(status==='pending'?'대기중':status==='accepted'?'완료':'거절/반환')+'</div></div></div>'+action+'</div>';
+ }).join('');
 }
 
 function studentLogout(){
@@ -221,7 +305,7 @@ function historyHTML(tx){
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=4', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=5', {updateViaCache: 'none'}).catch(err => {
       console.warn('아고라 은행 service worker 등록 실패:', err);
     });
   });
