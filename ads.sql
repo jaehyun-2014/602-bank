@@ -5,7 +5,7 @@ create table if not exists public.agora_ads (
   description text not null default '',
   sponsor text not null,
   url text not null,
-  approved boolean not null default false,
+  approved boolean not null default true,
   created_at timestamptz not null default now()
 );
 alter table public.agora_ads enable row level security;
@@ -47,16 +47,6 @@ begin
 end;
 $$;
 
-create or replace function public.ad_admin_set_approved(p_code text,p_id uuid,p_approved boolean)
-returns boolean language plpgsql security definer set search_path=''
-as $$
-begin
- if not public.bank_admin_login(p_code) then raise exception '관리자 코드가 올바르지 않습니다.'; end if;
- update public.agora_ads set approved=p_approved where id=p_id;
- return found;
-end;
-$$;
-
 create or replace function public.ad_admin_delete(p_code text,p_id uuid)
 returns boolean language plpgsql security definer set search_path=''
 as $$
@@ -70,11 +60,11 @@ $$;
 revoke execute on function public.ad_browse() from public,authenticated;
 revoke execute on function public.ad_admin_list(text) from public,authenticated;
 revoke execute on function public.ad_admin_add(text,text,text,text,text) from public,authenticated;
-revoke execute on function public.ad_admin_set_approved(text,uuid,boolean) from public,authenticated;
 revoke execute on function public.ad_admin_delete(text,uuid) from public,authenticated;
 grant execute on function public.ad_browse() to anon;
 grant execute on function public.ad_admin_list(text) to anon;
 grant execute on function public.ad_admin_add(text,text,text,text,text) to anon;
-grant execute on function public.ad_admin_set_approved(text,uuid,boolean) to anon;
 grant execute on function public.ad_admin_delete(text,uuid) to anon;
+notify pgrst,'reload schema';
+update public.agora_ads set approved=true;
 notify pgrst,'reload schema';
