@@ -69,7 +69,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 </head>
 <body>
 <div class="wrap">
-<header><div class="logo"><div class="mark" aria-label="아고라 케피털"></div>아고라 케피털</div><div class="header-actions"><button class="btn ghost" onclick="openNotifications()">알림 <span id="notifyBadge" class="notify-badge hidden">0</span></button><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button><button class="cmd-mini" onclick="openCMD()">CMD</button><button class="fun-btn" onclick="openAgoraMonitor()">AGORA MONITOR</button><button class="fun-btn" onclick="openTerminal2()">터미널 2.0</button><button class="fun-btn" onclick="openAgoraControl()">AGORA CONTROL</button></div></header>
+<header><div class="logo"><div class="mark" aria-label="아고라 케피털"></div>아고라 케피털</div><div class="header-actions"><button class="btn ghost" onclick="openNotifications()">알림 <span id="notifyBadge" class="notify-badge hidden">0</span></button><button class="btn dark" onclick="show('admin')">관리자 통합뷰어</button><button class="cmd-mini" onclick="openCMD()">CMD</button><button class="fun-btn" onclick="openAgoraMonitor()">AGORA MONITOR</button><button class="fun-btn" onclick="openTerminal2()">터미널 2.0</button></div></header>
 
 <section id="home">
 <div class="hero"><div class="eyebrow">AGORA CAPITAL</div><h1>아고라 케피털</h1><p>우리 반의 금융과 경제활동을 한곳에서</p><div class="actions"><button class="btn primary" onclick="show('student')">아고라 은행</button><button class="btn primary" onclick="show('market');loadMarket()">아고라 시장</button><button class="btn primary" onclick="show('stock');loadStocks()">아고라 주식</button><button class="btn primary" onclick="show('mail');loadMail()">아고라 메일</button></div></div>
@@ -334,32 +334,75 @@ function openAgoraMonitor(){
   <div class="monitor-card"><b>SYSTEM CLOCK</b><div id="monitorClock" class="monitor-clock">--:--:--</div><div class="muted">브라우저 기준 현재 시각</div></div>
   <div class="monitor-card"><b>CORE STATUS</b><div id="monitorCore" class="monitor-value monitor-ok">ONLINE</div><div id="monitorCoreMeta" class="muted">웹 앱 상태 확인 중</div></div>
   <div class="monitor-card"><b>NOTIFICATION</b><div id="monitorNotify" class="monitor-value">0</div><div class="muted">현재 읽지 않은 알림</div></div>
+  <div class="monitor-card"><b>EDGE / BROWSER</b><div id="monitorEdge" class="monitor-value">확인 중</div><div id="monitorEdgeMeta" class="muted">브라우저 정보 불러오는 중</div></div>
+  <div class="monitor-card"><b>PWA STATUS</b><div id="monitorPwa" class="monitor-value">확인 중</div><div id="monitorPwaMeta" class="muted">설치·실행 상태 확인 중</div></div>
+  <div class="monitor-card"><b>SERVICE WORKER</b><div id="monitorSw" class="monitor-value">확인 중</div><div id="monitorSwMeta" class="muted">서비스 워커 상태 확인 중</div></div>
+  <div class="monitor-card"><b>STORAGE</b><div id="monitorStorage" class="monitor-value">확인 중</div><div id="monitorStorageMeta" class="muted">브라우저 저장공간 확인 중</div></div>
   <div class="monitor-card"><b>RUNTIME MEMORY</b><div id="monitorLoad" class="monitor-value">측정 중</div><div class="monitor-bar"><div id="monitorFill" class="monitor-fill" style="width:0%"></div></div><div id="monitorLoadMeta" class="muted" style="margin-top:7px">브라우저가 제공하는 실제 JS 메모리 정보</div></div>
   <div class="monitor-card"><b>PAGE RUNTIME</b><div id="monitorRuntime" class="monitor-value">0초</div><div class="muted">이 페이지가 열린 시간</div></div>
   <div class="monitor-card"><b>NETWORK</b><div id="monitorNetwork" class="monitor-value">--</div><div class="muted">브라우저 연결 상태</div></div>
  </div>
- <div id="monitorLog" class="monitor-log">[AGORA MONITOR] 실제 브라우저 런타임 정보를 읽는 중...</div>
+ <div id="monitorLog" class="monitor-log">[AGORA MONITOR] Edge / PWA / Service Worker 정보를 읽는 중...</div>
  </div>`;
  document.body.appendChild(w);
  const started=performance.now();
- const tick=()=>{
+ const getBrowser=()=>{
+   const ua=navigator.userAgent||'';
+   const edge=/Edg\/([\d.]+)/i.exec(ua);
+   const chrome=/Chrome\/([\d.]+)/i.exec(ua);
+   if(edge)return {name:'Microsoft Edge',version:edge[1]};
+   if(chrome)return {name:'Chromium 기반 브라우저',version:chrome[1]};
+   return {name:'기타 브라우저',version:'확인 불가'};
+ };
+ const tick=async()=>{
    const clock=document.getElementById('monitorClock');
-   const load=document.getElementById('monitorLoad');
-   const fill=document.getElementById('monitorFill');
-   const notify=document.getElementById('monitorNotify');
-   const runtime=document.getElementById('monitorRuntime');
-   const network=document.getElementById('monitorNetwork');
-   const log=document.getElementById('monitorLog');
    if(!clock){clearInterval(agoraMonitorTimer);return;}
    clock.textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false});
-   notify.textContent=String(notifyItems?.filter(x=>!x.read_at).length||0);
+   const unread=notifyItems?.filter(x=>!x.read_at).length||0;
+   document.getElementById('monitorNotify').textContent=String(unread);
    const sec=Math.floor((performance.now()-started)/1000);
-   runtime.textContent=sec+'초';
-   network.textContent=navigator.onLine?'ONLINE':'OFFLINE';
+   document.getElementById('monitorRuntime').textContent=sec+'초';
+   const online=navigator.onLine;
+   document.getElementById('monitorNetwork').textContent=online?'ONLINE':'OFFLINE';
    const core=document.getElementById('monitorCore');
    const coreMeta=document.getElementById('monitorCoreMeta');
-   if(core)core.textContent=navigator.onLine?'ONLINE':'OFFLINE';
-   if(coreMeta)coreMeta.textContent='BANK · MARKET · STOCK · MAIL · NOTIFY';
+   core.textContent=online?'ONLINE':'OFFLINE';
+   coreMeta.textContent='BANK · MARKET · STOCK · MAIL · NOTIFY';
+   
+   const browser=getBrowser();
+   document.getElementById('monitorEdge').textContent=browser.name;
+   document.getElementById('monitorEdgeMeta').textContent='버전 '+browser.version+' · '+(navigator.platform||'플랫폼 확인 불가');
+   
+   const standalone=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+   document.getElementById('monitorPwa').textContent=standalone?'RUNNING':'BROWSER';
+   document.getElementById('monitorPwaMeta').textContent=standalone?'PWA 독립 실행 모드':'일반 브라우저 모드';
+   
+   const sw=document.getElementById('monitorSw');
+   const swMeta=document.getElementById('monitorSwMeta');
+   if('serviceWorker' in navigator){
+     const reg=await navigator.serviceWorker.getRegistration();
+     sw.textContent=reg?.active?'ACTIVE':reg?'REGISTERED':'NOT REGISTERED';
+     swMeta.textContent=reg?.active?'Service Worker 제어 활성':'등록은 되었지만 활성화 대기 중';
+   }else{
+     sw.textContent='UNSUPPORTED';
+     swMeta.textContent='이 브라우저는 Service Worker를 지원하지 않습니다.';
+   }
+   
+   const storage=document.getElementById('monitorStorage');
+   const storageMeta=document.getElementById('monitorStorageMeta');
+   if(navigator.storage?.estimate){
+     const e=await navigator.storage.estimate();
+     const used=Math.round((e.usage||0)/1024/1024);
+     const quota=Math.round((e.quota||0)/1024/1024);
+     storage.textContent=used.toLocaleString()+' MB';
+     storageMeta.textContent='예상 한도 '+quota.toLocaleString()+' MB';
+   }else{
+     storage.textContent='N/A';
+     storageMeta.textContent='Storage Estimate를 지원하지 않습니다.';
+   }
+   
+   const load=document.getElementById('monitorLoad');
+   const fill=document.getElementById('monitorFill');
    if(performance.memory){
      const used=performance.memory.usedJSHeapSize;
      const total=performance.memory.jsHeapSizeLimit||performance.memory.totalJSHeapSize;
@@ -369,15 +412,21 @@ function openAgoraMonitor(){
      const mb=Math.round(used/1024/1024);
      const limit=Math.round(total/1024/1024);
      document.getElementById('monitorLoadMeta').textContent='JS 메모리 '+mb.toLocaleString()+'MB / 한도 '+limit.toLocaleString()+'MB';
-     log.textContent='[AGORA MONITOR] '+new Date().toLocaleTimeString('ko-KR')+'\nRUNTIME MEMORY '+mb+'MB\nNETWORK '+(navigator.onLine?'ONLINE':'OFFLINE')+'\nNOTIFY '+notify.textContent;
    }else{
      load.textContent='N/A';
      fill.style.width='0%';
      document.getElementById('monitorLoadMeta').textContent='이 브라우저는 실제 JS 메모리 측정을 제공하지 않습니다.';
-     log.textContent='[AGORA MONITOR] 실제 시스템 CPU 사용률은 웹 브라우저 보안상 직접 측정할 수 없습니다.\n대신 브라우저가 제공하는 런타임 정보만 표시합니다.';
    }
+   document.getElementById('monitorLog').textContent=
+     '[AGORA MONITOR] '+new Date().toLocaleTimeString('ko-KR')+
+     '\\nBROWSER '+browser.name+' '+browser.version+
+     '\\nPWA '+(standalone?'STANDALONE':'BROWSER')+
+     '\\nSERVICE WORKER '+(sw.textContent||'N/A')+
+     '\\nNETWORK '+(online?'ONLINE':'OFFLINE')+
+     '\\nSTORAGE '+(storage.textContent||'N/A')+
+     '\\nNOTIFY '+unread;
  };
- tick();agoraMonitorTimer=setInterval(tick,1000);
+ tick();agoraMonitorTimer=setInterval(tick,3000);
 }
  
 // ===== 아고라 터미널 2.0 =====
@@ -1363,7 +1412,7 @@ function historyHTML(tx){
 if (supabaseReady) loadApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=21', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=22', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
