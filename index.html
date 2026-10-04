@@ -661,6 +661,12 @@ let marketCategoryValue='all';
 let marketItems=[];
 let marketShops=[];
 
+function isMarketItemOwner(item){
+ const myName=String(currentMember?.account?.name||'').trim();
+ const sellerName=String(item?.seller_name||'').trim();
+ return !!myName && !!sellerName && myName===sellerName;
+}
+
 function marketCategory(category,button){
  marketCategoryValue=category;
  document.querySelectorAll('.market-tab').forEach(x=>x.classList.remove('active'));
@@ -714,7 +720,7 @@ function openShop(index){
    const preview=item.preview_url
      ? '<img src="'+esc(item.preview_url)+'" alt="">'
      : '<div class="preview-text">'+esc(item.category)+'</div>';
-   const deleteButton=item.is_owner
+   const deleteButton=(item.is_owner||isMarketItemOwner(item))
      ? '<button class="btn red" onclick="marketDeleteItem(\''+esc(item.id)+'\')">상품 삭제</button>'
      : '';
    return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">상세 보기</button><button class="btn blue" onclick="purchaseItem(\''+esc(item.id)+'\')">구매</button>'+deleteButton+'</div></div></article>';
