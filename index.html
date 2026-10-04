@@ -746,7 +746,11 @@ function updateLikeButtons(id){
  if(!item)return;
  document.querySelectorAll('[data-like-id="'+id+'"]').forEach(btn=>{
    btn.classList.toggle('liked',!!item.liked);
-   btn.innerHTML='<span class="heart">'+(item.liked?'♥':'♡')+'</span> '+(item.liked?'좋아요 취소':'좋아요')+' <span class="like-count">'+Number(item.like_count||0)+'</span>';
+   if(btn.id==='market-detail-like-'+id){
+     btn.innerHTML='<span class="heart">'+(item.liked?'♥':'♡')+'</span> '+(item.liked?'좋아요 취소':'좋아요')+' <span class="like-count">'+Number(item.like_count||0)+'</span>';
+   }else{
+     btn.innerHTML='<span class="heart">'+(item.liked?'♥':'♡')+'</span> <span class="like-count">'+Number(item.like_count||0)+'</span>';
+   }
  });
 }
 
