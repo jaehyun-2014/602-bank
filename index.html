@@ -206,7 +206,15 @@ async function mailLogin(){
  document.getElementById('mailLogin').classList.add('hidden');loadMail();
 }
 async function loadMail(){
- if(!currentMember){document.getElementById('mailLogin')?.classList.remove('hidden');document.getElementById('mailApp')?.classList.add('hidden');return;}
+ const login=document.getElementById('mailLogin');
+ const app=document.getElementById('mailApp');
+ if(!currentMember){
+  login?.classList.remove('hidden');
+  app?.classList.add('hidden');
+  return;
+ }
+ login?.classList.add('hidden');
+ app?.classList.add('hidden');
  const {data,error}=await supabaseClient.rpc('mail_inbox',{p_no:currentMember.no,p_pin:currentMember.pin});
  if(error||!data)return msg('mailMsg',error?.message||'메일을 불러오지 못했습니다.',true);
  mailMessages=data.messages||[];renderMail();
@@ -1480,7 +1488,7 @@ function historyHTML(tx){
 initSupabase();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=24', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=25', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
