@@ -821,23 +821,95 @@ async function buyCart(){
 
 async function uploadMarketFile(file,folder){
  if(!file)return '';
+
  const max=10*1024*1024;
- if(file.size>max)throw new Error('파일은 10MB 이하만 올릴 수 있습니다.');
+ if(file.size>max){
+   throw new Error(
+     '파일이 너무 큽니다.\\n\\n'+
+     '현재: '+(file.size/1024/1024).toFixed(2)+'MB\\n'+
+     '최대: 10MB'
+   );
+ }
+
  const safe=file.name.replace(/[^0-9A-Za-z가-힣._-]/g,'_');
- const ext=(file.name.match(/\.([^.]+)$/)||['','bin'])[1].toLowerCase();
+ const ext=(file.name.match(/\\.([^.]+)$/)||['','bin'])[1].toLowerCase();
  const blocked=['exe','dll','bat','cmd','com','scr','msi','ps1','vbs','js'];
- if(blocked.includes(ext))throw new Error('실행 파일은 판매 파일로 올릴 수 없습니다.');
+
+ if(blocked.includes(ext)){
+   throw new Error(
+     '보안상 업로드할 수 없는 파일 형식입니다.\\n\\n'+
+     '파일 형식: .'+ext
+   );
+ }
+
  const path=folder+'/'+crypto.randomUUID()+'-'+safe;
  const contentType=file.type||'application/octet-stream';
- const {data,error}=await supabaseClient.storage.from('market-files').upload(path,file,{cacheControl:'3600',upsert:false,contentType});
- if(error){
-   console.error('market-files upload error:',error);
-   throw new Error('파일 업로드 실패: '+(error.message||'Storage 오류'));
- }
- const pub=supabaseClient.storage.from('market-files').getPublicUrl(data.path);
- return pub.data.publicUrl;
-}
+ let lastError=null;
 
+ for(let attempt=1;attempt<=2;attempt++){
+   try{
+     const {data,error}=await supabaseClient.storage
+       .from('market-files')
+       .upload(path,file,{
+         cacheControl:'3600',
+         upsert:false,
+         contentType
+       });
+
+     if(error){
+       lastError=error;
+       console.error('[AGORA MARKET] 업로드 실패 '+attempt+'/2',error);
+       if(attempt<2){
+         await new Promise(r=>setTimeout(r,700));
+         continue;
+       }
+       throw error;
+     }
+
+     if(!data?.path){
+       throw new Error('Storage가 업로드 경로를 반환하지 않았습니다.');
+     }
+
+     const pub=supabaseClient.storage
+       .from('market-files')
+       .getPublicUrl(data.path);
+
+     if(!pub?.data?.publicUrl){
+       throw new Error('파일은 올라갔지만 공개 URL을 만들지 못했습니다.');
+     }
+
+     console.log('[AGORA MARKET] 업로드 성공:',data.path);
+     return pub.data.publicUrl;
+
+   }catch(error){
+     lastError=error;
+
+     if(attempt>=2){
+       const raw=error?.message||error?.error_description||'알 수 없는 Storage 오류';
+       let explanation='';
+
+       if(/row-level|policy|permission|not authorized|unauthorized/i.test(raw)){
+         explanation='\\n\\n→ Storage 업로드 권한 정책을 확인해야 합니다.';
+       }else if(/size|large|payload/i.test(raw)){
+         explanation='\\n\\n→ 파일 크기 제한에 걸렸을 가능성이 있습니다.';
+       }else if(/network|fetch|failed to fetch/i.test(raw)){
+         explanation='\\n\\n→ 인터넷 연결 또는 Supabase 연결 문제일 수 있습니다.';
+       }
+
+       throw new Error(
+         '파일 업로드에 실패했습니다.\\n\\n'+
+         '파일: '+file.name+'\\n'+
+         '크기: '+(file.size/1024/1024).toFixed(2)+'MB\\n'+
+         '폴더: '+folder+'\\n\\n'+
+         'Storage 오류:\\n'+raw+
+         explanation
+       );
+     }
+   }
+ }
+
+ throw lastError||new Error('파일 업로드에 실패했습니다.');
+}
 async function createMarketPreview(file){
  if(!file)return '';
  if(!file.type.startsWith('image/'))throw new Error('미리보기는 이미지 파일만 사용할 수 있습니다.');
