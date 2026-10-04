@@ -50,24 +50,6 @@ begin
       from public.bank_transactions t
       where t.account_id=a.id
     ),'[]'::jsonb),
-    'transfers',coalesce(
-      (
-        select jsonb_agg(to_jsonb(x) order by x.created_at desc)
-        from (
-          select
-            tr.id,
-            tr.sender_account_id,
-            tr.recipient_account_id,
-            tr.amount,
-            tr.status,
-            tr.created_at
-          from public.bank_transfers tr
-          where tr.sender_account_id=a.id
-             or tr.recipient_account_id=a.id
-        ) x
-      ),
-      '[]'::jsonb
-    )
   );
 end;
 $$;
