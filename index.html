@@ -242,7 +242,7 @@ function renderNotifications(){
  login?.classList.add('hidden');app?.classList.remove('hidden');
  const unread=notifyItems.filter(x=>!x.read_at).length;
  app.innerHTML='<div class="panel"><div class="top"><div><div class="eyebrow">AGORA NOTIFICATIONS</div><h2 style="margin:5px 0">아고라 알림센터</h2><p class="muted">새 메일, 송금, 시장, 대출, 주식 활동을 알려드립니다.</p></div><button class="btn ghost" onclick="readAllNotifications()">모두 읽음</button></div>'+
- (notifyItems.length?'<div class="notify-list">'+notifyItems.map(x=>'<div class="notify-row '+(!x.read_at?'unread':'')+'" onclick="openNotification('+Number(x.id)+')"><div class="notify-row-top"><span class="notify-title">'+esc(x.title)+'</span><span class="notify-date">'+esc(x.date)+'</span></div><div class="notify-body">'+esc(x.body)+'</div></div>').join('')+'</div>':'<div class="notify-empty">새 알림이 없습니다.</div>')+
+ (notifyItems.length?'<div class="notify-list">'+notifyItems.map(x=>'<div class="notify-row '+(!x.read_at?'unread':'')+'" onclick="openNotification('+Number(x.id)+')"><div class="notify-row-top"><span class="notify-title">'+esc(x.title)+'</span><span class="notify-date">'+esc(x.date)+'</span></div><div class="notify-body">'+esc(x.body||x.message||'')+'</div></div>').join('')+'</div>':'<div class="notify-empty">새 알림이 없습니다.</div>')+
  '<div style="margin-top:14px"><button class="btn ghost" onclick="show(\'home\')">홈으로</button></div></div>';
 }
 async function openNotification(id){
@@ -259,9 +259,17 @@ async function openNotification(id){
 }
 async function readAllNotifications(){
  if(!currentMember)return;
- const {error}=await supabaseClient.rpc('notification_read_all',{p_no:currentMember.no,p_pin:currentMember.pin});
- if(error)return alert(error.message);
- notifyItems.forEach(x=>x.read_at=x.read_at||new Date().toISOString());
+ const unread=notifyItems.filter(x=>!x.read_at);
+ if(!unread.length)return;
+ const results=await Promise.all(unread.map(x=>supabaseClient.rpc('notification_read',{
+   p_no:currentMember.no,
+   p_pin:currentMember.pin,
+   p_id:x.id
+ })));
+ const failed=results.find(r=>r.error);
+ if(failed)return alert(failed.error.message||'알림 읽음 처리에 실패했습니다.');
+ const now=new Date().toISOString();
+ notifyItems.forEach(x=>{if(!x.read_at)x.read_at=now;});
  updateNotifyBadge();renderNotifications();
 }
 function show(id){['home','student','market','stock','mail','notifications','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
