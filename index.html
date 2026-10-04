@@ -578,7 +578,7 @@ function openUserGuide(){
  const w=document.createElement('div');
  w.id='userGuideWindow';
  w.className='tool-window';
- w.innerHTML='<div class="tool-box" style="max-width:760px"><div class="tool-head"><b>아고라 케피털 사용설명서</b><button class="tool-close" onclick="document.getElementById(\\'userGuideWindow\\').remove()">닫기</button></div><div style="padding:22px"><div class="panel" style="margin-bottom:12px"><h2>처음 사용하기</h2><p class="muted">홈 화면에서 원하는 서비스를 선택한 뒤 안내에 따라 로그인하세요.</p><p><b>아고라 은행</b> · 계좌 조회, 입출금, 송금, 대출</p><p><b>아고라 시장</b> · 상품 구매, 판매, 장바구니</p><p><b>아고라 주식</b> · 가상 주식 조회 및 거래</p><p><b>아고라 메일</b> · 반 친구들과 메시지 주고받기</p></div><div class="panel" style="margin-bottom:12px"><h2>위쪽 버튼</h2><p><b>알림</b> · 새 알림을 확인합니다.</p><p><b>관리자 통합뷰어</b> · 관리자 전용 관리 화면입니다.</p><p><b>CMD</b> · 아고라 전용 명령어 터미널입니다.</p><p><b>AGORA MONITOR</b> · 시스템 상태를 보는 재미있는 모니터입니다.</p><p><b>터미널 2.0</b> · 추가 명령어를 사용할 수 있습니다.</p><p><b>!</b> · 블루스크린 화면을 실행합니다.</p></div><div class="panel" style="margin-bottom:0"><h2>알림 사용법</h2><p class="muted">관리자는 통합뷰어의 알림 보내기에서 전체 회원 또는 특정 회원을 선택해 알림을 보낼 수 있습니다.</p><p class="muted">알림을 누르면 해당 서비스로 바로 이동할 수 있습니다.</p></div></div></div>';
+ w.innerHTML='<div class="tool-box" style="max-width:760px"><div class="tool-head"><b>아고라 케피털 사용설명서</b><button class="tool-close" onclick="document.getElementById(\'userGuideWindow\').remove()">닫기</button></div><div style="padding:22px"><div class="panel" style="margin-bottom:12px"><h2>처음 사용하기</h2><p class="muted">홈 화면에서 원하는 서비스를 선택한 뒤 안내에 따라 로그인하세요.</p><p><b>아고라 은행</b> · 계좌 조회, 입출금, 송금, 대출</p><p><b>아고라 시장</b> · 상품 구매, 판매, 장바구니</p><p><b>아고라 주식</b> · 가상 주식 조회 및 거래</p><p><b>아고라 메일</b> · 반 친구들과 메시지 주고받기</p></div><div class="panel" style="margin-bottom:12px"><h2>위쪽 버튼</h2><p><b>알림</b> · 새 알림을 확인합니다.</p><p><b>관리자 통합뷰어</b> · 관리자 전용 관리 화면입니다.</p><p><b>CMD</b> · 아고라 전용 명령어 터미널입니다.</p><p><b>AGORA MONITOR</b> · 시스템 상태를 보는 재미있는 모니터입니다.</p><p><b>터미널 2.0</b> · 추가 명령어를 사용할 수 있습니다.</p><p><b>!</b> · 블루스크린 화면을 실행합니다.</p></div><div class="panel" style="margin-bottom:0"><h2>알림 사용법</h2><p class="muted">관리자는 통합뷰어의 알림 보내기에서 전체 회원 또는 특정 회원을 선택해 알림을 보낼 수 있습니다.</p><p class="muted">알림을 누르면 해당 서비스로 바로 이동할 수 있습니다.</p></div></div></div>';
  document.body.appendChild(w);
  w.addEventListener('click',e=>{if(e.target===w)w.remove();});
 }
@@ -1480,7 +1480,7 @@ function historyHTML(tx){
 initSupabase();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=23', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=24', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
