@@ -100,7 +100,7 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 <div class="panel"><h2>내 주식 거래내역</h2><div id="stockTrades"><p class="muted">로그인하면 거래내역을 확인할 수 있습니다.</p></div></div>
 </section>
 
-<section id="notifications" class="hidden"><div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>🔔 아고라 알림센터</b></div><div id="notifyLogin" class="panel login"><div class="mark"></div><h2>아고라 알림센터</h2><p class="muted">은행 계좌로 로그인하면 나에게 온 알림을 확인할 수 있습니다.</p><button class="btn blue" style="width:100%" onclick="show('student')">은행 로그인으로 이동</button></div><div id="notifyApp" class="hidden"></div></section>
+<section id="notifications" class="hidden"><div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>아고라 알림센터</b></div><div id="notifyLogin" class="panel login"><div class="mark"></div><h2>아고라 알림센터</h2><p class="muted">은행 계좌로 로그인하면 나에게 온 알림을 확인할 수 있습니다.</p><button class="btn blue" style="width:100%" onclick="show('student')">은행 로그인으로 이동</button></div><div id="notifyApp" class="hidden"></div></section>
 <section id="mail" class="hidden"><div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>아고라 메일</b></div><div id="mailLogin" class="panel login"><div class="mark" aria-label="아고라 케피털"></div><h2>아고라 메일</h2><p class="muted">반 친구들과 주고받는 전용 이메일입니다.</p><input id="mailNo" placeholder="계좌번호 602-001"><input id="mailName" placeholder="이름"><input id="mailPin" type="password" inputmode="numeric" maxlength="8" placeholder="고유번호 4~8자리"><button class="btn blue" style="width:100%" onclick="mailLogin()">메일 들어가기</button><div id="mailMsg"></div></div><div id="mailApp" class="hidden"></div></section>
 <section id="student" class="hidden">
 <div class="top"><a href="#" onclick="show('home');return false">← 아고라 케피털</a><b>일반 로그인</b></div>
@@ -206,6 +206,13 @@ async function openMail(id){
 function mailReply(address){mailCompose();setTimeout(()=>{document.getElementById('mailTo').value=address;document.getElementById('mailSubject').value='Re: ';},0);}
 function mailLogout(){mailFolder='inbox';mailMessages=[];currentMember=null;document.getElementById('mailApp')?.classList.add('hidden');document.getElementById('mailLogin')?.classList.remove('hidden');show('home');}
 let notifyItems=[];
+async function refreshNotifyBadge(){
+ if(!currentMember||!supabaseReady)return;
+ const {data,error}=await supabaseClient.rpc('notification_list',{p_no:currentMember.no,p_pin:currentMember.pin});
+ if(error||!data)return;
+ notifyItems=data.notifications||[];
+ updateNotifyBadge();
+}
 async function openNotifications(){
  show('notifications');
  if(!currentMember){
@@ -1094,11 +1101,12 @@ function historyHTML(tx){
 if (supabaseReady) loadApprovedAds();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=20', {updateViaCache: 'none'}).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=21', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
 }
+setInterval(refreshNotifyBadge,15000);
 </script>
 
 </body>
