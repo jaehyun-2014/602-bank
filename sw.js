@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agora-capital-shell-v24';
+const CACHE_NAME = 'agora-capital-shell-v25';
 const SDK_CACHE = 'agora-supabase-sdk-v1';
 const APP_SHELL = [
   '/602-bank/',
