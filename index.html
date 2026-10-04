@@ -119,19 +119,56 @@ footer{text-align:center;color:#7a8799;font-size:12px;margin-top:28px}.approved-
 <footer>아고라 케피털 · 학급용 경제 시스템</footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <script>
 const SUPABASE_URL='https://qugdtljqifagaanrelxq.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_K1mj11BXsdVYBWroata6cg_g9WKcfL4';
 let supabaseClient=null;
 let supabaseReady=false;
-try{
-  if(window.supabase&&typeof window.supabase.createClient==='function'){
-    supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let supabaseLoading=null;
+
+function loadSupabaseSDK(){
+  if(window.supabase&&typeof window.supabase.createClient==='function') return Promise.resolve(window.supabase);
+  if(supabaseLoading) return supabaseLoading;
+  supabaseLoading=new Promise((resolve,reject)=>{
+    const urls=[
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+      'https://unpkg.com/@supabase/supabase-js@2'
+    ];
+    let i=0;
+    const next=()=>{
+      if(window.supabase&&typeof window.supabase.createClient==='function') return resolve(window.supabase);
+      if(i>=urls.length) return reject(new Error('Supabase 클라이언트 라이브러리를 불러오지 못했습니다.'));
+      const s=document.createElement('script');
+      s.src=urls[i++];
+      s.async=false;
+      s.onload=()=>{
+        if(window.supabase&&typeof window.supabase.createClient==='function') resolve(window.supabase);
+        else next();
+      };
+      s.onerror=()=>next();
+      document.head.appendChild(s);
+    };
+    next();
+  });
+  return supabaseLoading;
+}
+
+async function initSupabase(){
+  try{
+    await loadSupabaseSDK();
+    supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+    });
     supabaseReady=true;
+    console.log('아고라 케피털: Supabase 연결 준비 완료');
+    if(typeof loadApprovedAds==='function') loadApprovedAds();
+    if(currentMember&&typeof refreshNotifyBadge==='function') refreshNotifyBadge();
+  }catch(e){
+    supabaseReady=false;
+    console.error('아고라 케피털 Supabase 초기화 오류:',e);
+    const ids=['smsg','amsg','stockNotice','marketNotice','mailMsg','notifyLogin'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el&&!el.innerHTML)el.innerHTML='<div class="notice error">아고라 클라우드 연결에 실패했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.</div>';});
   }
-}catch(e){
-  console.error('아고라 케피털 Supabase 초기화 오류:',e);
 }
 let currentMember=null;
 let adminCode=null;
@@ -1409,10 +1446,10 @@ function historyHTML(tx){
 </script>
 
 <script>
-if (supabaseReady) loadApprovedAds();
+initSupabase();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=22', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=23', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
