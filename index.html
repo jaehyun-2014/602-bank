@@ -714,10 +714,29 @@ function openShop(index){
    const preview=item.preview_url
      ? '<img src="'+esc(item.preview_url)+'" alt="">'
      : '<div class="preview-text">'+esc(item.category)+'</div>';
-   return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">상세 보기</button><button class="btn blue" onclick="purchaseItem(\''+esc(item.id)+'\')">구매</button></div></div></article>';
+   const deleteButton=item.is_owner
+     ? '<button class="btn red" onclick="marketDeleteItem(\''+esc(item.id)+'\')">상품 삭제</button>'
+     : '';
+   return '<article class="product-card"><div class="product-preview">'+preview+'</div><div class="product-body"><div class="product-title">'+esc(item.title)+'</div><div class="product-desc">'+esc(item.description)+'</div><div class="product-meta"><span class="price">'+Number(item.price).toLocaleString()+'공</span><span class="market-small">'+Number(item.like_count||0)+' 좋아요</span></div><div class="market-actions"><button class="btn ghost" onclick="openProduct(\''+esc(item.id)+'\')">상세 보기</button><button class="btn blue" onclick="purchaseItem(\''+esc(item.id)+'\')">구매</button>'+deleteButton+'</div></div></article>';
  }).join('');
  modal.innerHTML='<div class="market-modal" style="max-width:900px"><button class="close" onclick="this.closest(\'.market-detail\').remove()">닫기</button><div class="eyebrow">AGORA SHOP</div><h2 style="margin:6px 0 2px">'+esc(shop.name)+'</h2><p class="muted">판매자 · '+esc(shop.owner)+'</p><div class="seller-box">'+esc(shop.description||'이 가게의 상품을 둘러보세요.')+'<br><b>'+shop.items.length+'개 상품</b></div><div class="market-grid" style="margin-top:18px">'+products+'</div></div>';
  document.body.appendChild(modal);
+}
+
+async function marketDeleteItem(id){
+ if(!currentMember)return;
+ if(!confirm('이 상품을 시장에서 삭제할까요?\\n삭제하면 더 이상 판매 목록에 표시되지 않습니다.'))return;
+ const {data,error}=await supabaseClient.rpc('market_delete_item',{
+   p_no:currentMember.no,
+   p_pin:currentMember.pin,
+   p_item_id:id
+ });
+ if(error||!data){
+   return alert(error?.message||'상품 삭제에 실패했습니다.');
+ }
+ document.getElementById('marketModal')?.remove();
+ await loadMarket();
+ msg('marketNotice','상품이 삭제되었습니다.');
 }
 
 function openMarketLogin(){
