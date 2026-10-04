@@ -831,8 +831,14 @@ async function uploadMarketFile(file,folder){
    );
  }
 
- const safe=file.name.replace(/[^0-9A-Za-z가-힣._-]/g,'_');
- const ext=(file.name.match(/\\.([^.]+)$/)||['','bin'])[1].toLowerCase();
+ const originalName=file.name||'upload.bin';
+ const ext=(originalName.match(/\.([^.]+)$/)||['','bin'])[1].toLowerCase();
+ const base=(originalName.replace(/\.[^.]+$/,'')||'file')
+   .replace(/[^0-9A-Za-z_-]/g,'_')
+   .replace(/^_+|_+$/g,'')
+   .slice(0,80)||'file';
+ const safe=base+'.'+ext;
+
  const blocked=['exe','dll','bat','cmd','com','scr','msi','ps1','vbs','js'];
 
  if(blocked.includes(ext)){
@@ -843,7 +849,6 @@ async function uploadMarketFile(file,folder){
  }
 
  const path=folder+'/'+crypto.randomUUID()+'-'+safe;
- const contentType=file.type||'application/octet-stream';
  let lastError=null;
 
  for(let attempt=1;attempt<=2;attempt++){
@@ -852,8 +857,7 @@ async function uploadMarketFile(file,folder){
        .from('market-files')
        .upload(path,file,{
          cacheControl:'3600',
-         upsert:false,
-         contentType
+         upsert:false
        });
 
      if(error){
