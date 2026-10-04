@@ -568,7 +568,7 @@ function openAgoraSettings(){
  const w=document.createElement('div');
  w.id='agoraSettingsWindow';
  w.className='settings-window';
- w.innerHTML='<div class="settings-box"><div class="settings-head"><b>AGORA CAPITAL · 설정</b><button class="settings-close" onclick="document.getElementById(\'agoraSettingsWindow\').remove()">닫기</button></div><div class="settings-body"><div class="settings-title">도구 및 시스템</div><div class="settings-desc">아고라 케피털의 보조 도구를 여기에서 실행할 수 있습니다.</div><div class="settings-grid"><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openCMD()"><div class="settings-icon">C:\\&gt;</div><div><b>CMD</b><span>AGORA CAPITAL CMD</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openAgoraMonitor()"><div class="settings-icon">AM</div><div><b>AGORA MONITOR</b><span>시스템 모니터</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openTerminal2()"><div class="settings-icon">&gt;_</div><div><b>터미널 2.0</b><span>AGORA TERMINAL 2.0</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openUserGuide()"><div class="settings-icon">?</div><div><b>사용설명서</b><span>AGORA CAPITAL GUIDE</span></div></button></div></div></div>';
+ w.innerHTML='<div class="settings-box"><div class="settings-head"><b>AGORA CAPITAL · 설정</b><button class="settings-close" onclick="document.getElementById(\'agoraSettingsWindow\').remove()">닫기</button></div><div class="settings-body"><div class="settings-title">도구 및 시스템</div><div class="settings-desc">아고라 케피털의 보조 도구를 여기에서 실행할 수 있습니다.</div><div class="settings-grid"><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openCMD()"><div class="settings-icon">C:\\&gt;</div><div><b>CMD</b><span>AGORA CAPITAL CMD</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openAgoraMonitor()"><div class="settings-icon">AM</div><div><b>AGORA MONITOR</b><span>시스템 모니터</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openTerminal2()"><div class="settings-icon">&gt;_</div><div><b>터미널 2.0</b><span>AGORA TERMINAL 2.0</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openUserGuide()"><div class="settings-icon">?</div><div><b>사용설명서</b><span>AGORA CAPITAL GUIDE</span></div></button><button class="settings-item" onclick="document.getElementById(\'agoraSettingsWindow\').remove();openBlueScreen()"><div class="settings-icon">!</div><div><b>블루스크린</b><span>SIMULATED SYSTEM ERROR</span></div></button></div></div></div>';
  document.body.appendChild(w);
  w.addEventListener('click',e=>{if(e.target===w)w.remove()});
 }
@@ -1513,7 +1513,7 @@ function historyHTML(tx){
 initSupabase();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=27', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
+    navigator.serviceWorker.register('sw.js?v=28', {updateViaCache: 'none'}).then(r => r.update()).catch(err => {
       console.warn('아고라 케피털 service worker 등록 실패:', err);
     });
   });
