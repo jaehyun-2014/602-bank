@@ -783,6 +783,12 @@ begin
           'shop_id',sh.id,
           'shop_name',sh.name,
           'shop_description',sh.description,
+          'is_owner',a.id=(
+            select id from public.bank_accounts
+            where account_no=p_no
+              and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex')
+            limit 1
+          ),
           'like_count',(select count(*) from public.market_likes l where l.item_id=m.id),
           'liked',exists(
             select 1 from public.market_likes l2
@@ -890,5 +896,61 @@ set allowed_mime_types = null,
     public = true,
     file_size_limit = 10485760
 where id = 'market-files';
+
+notify pgrst,'reload schema';
+
+
+-- 판매자가 자신의 상품을 삭제(판매 중지)할 수 있도록 합니다.
+-- 실제 행은 남겨 구매 기록의 참조를 깨뜨리지 않고, active=false로 시장에서 숨깁니다.
+create or replace function public.market_delete_item(
+  p_no text,
+  p_pin text,
+  p_item_id uuid
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  a public.bank_accounts;
+  item public.market_items;
+begin
+  select * into a
+  from public.bank_accounts
+  where account_no=p_no
+    and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex');
+
+  if not found then
+    raise exception '본인확인에 실패했습니다.';
+  end if;
+
+  select * into item
+  from public.market_items
+  where id=p_item_id
+    and seller_account_id=a.id
+    and active=true
+  for update;
+
+  if not found then
+    raise exception '삭제할 상품을 찾을 수 없습니다.';
+  end if;
+
+  update public.market_items
+  set active=false
+  where id=item.id;
+
+  delete from public.market_cart
+  where item_id=item.id;
+
+  delete from public.market_likes
+  where item_id=item.id;
+
+  return true;
+end;
+$$;
+
+revoke execute on function public.market_delete_item(text,text,uuid) from public,authenticated;
+grant execute on function public.market_delete_item(text,text,uuid) to anon;
 
 notify pgrst,'reload schema';
