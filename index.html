@@ -204,7 +204,7 @@ async function openMail(id){
 }
 function mailReply(address){mailCompose();setTimeout(()=>{document.getElementById('mailTo').value=address;document.getElementById('mailSubject').value='Re: ';},0);}
 function mailLogout(){mailFolder='inbox';mailMessages=[];currentMember=null;document.getElementById('mailApp')?.classList.add('hidden');document.getElementById('mailLogin')?.classList.remove('hidden');show('home');}
-function show(id){['home','student','market','stock','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+function show(id){['home','student','market','stock','mail','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
 const AGORA_THEMES={blue:'기본 블루',dark:'다크',green:'그린',retro:'레트로',xp:'Windows XP',reset:'기본 블루'};
 function applyAgoraTheme(name){
  const theme=AGORA_THEMES[name]?name:'blue';
