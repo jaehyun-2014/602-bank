@@ -1087,13 +1087,14 @@ async function adminSendNotification(){
  if(!ok)return;
  const rpc=adminNotifyMode==='all'?'notification_admin_send_all':'notification_admin_send_one';
  const params=adminNotifyMode==='all'
-  ? {p_code:adminCode,p_type:'admin',p_title:title,p_body:body,p_link:link}
-  : {p_code:adminCode,p_no:no,p_type:'admin',p_title:title,p_body:body,p_link:link};
+  ? {p_code:adminCode,p_title:title,p_message:body}
+  : {p_code:adminCode,p_account_no:no,p_title:title,p_message:body};
  const {data,error}=await supabaseClient.rpc(rpc,params);
  if(error||data===null||data===false)return msg('adminNotifyMsg',error?.message||'알림 전송에 실패했습니다.',true);
  document.getElementById('adminNotifyTitle').value='';
  document.getElementById('adminNotifyBody').value='';
- msg('adminNotifyMsg',adminNotifyMode==='all'?Number(data)+'명에게 알림을 보냈습니다.':no+' 계좌에 알림을 보냈습니다.');
+ const sentCount=adminNotifyMode==='all' ? Number(data?.count||0) : 1;
+ msg('adminNotifyMsg',adminNotifyMode==='all'?sentCount+'명에게 알림을 보냈습니다.':no+' 계좌에 알림을 보냈습니다.');
 }
 async function loadAdminAds(){
  const el=document.getElementById('adminAdList');if(!el||!adminCode)return;
