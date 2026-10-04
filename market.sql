@@ -71,7 +71,6 @@ begin
           'category',m.category,
           'price',m.price,
           'preview_url',m.preview_url,
-          'download_url',m.download_url,
           'seller_name',a.name,
           'like_count',(select count(*) from public.market_likes l where l.item_id=m.id),
           'liked',exists(select 1 from public.market_likes l2 where l2.item_id=m.id and l2.account_id=(select id from public.bank_accounts where account_no=p_no and pin_hash=encode(extensions.digest(p_pin,'sha256'),'hex') limit 1))
