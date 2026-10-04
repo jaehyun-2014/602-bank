@@ -201,3 +201,53 @@ grant execute on function public.notification_read(text,text,bigint) to anon;
 grant execute on function public.notification_read_all(text,text) to anon;
 grant usage on schema public to anon;
 notify pgrst,'reload schema';
+
+-- 관리자 알림 발송
+drop function if exists public.notification_admin_send_all(text,text,text,text,text,text);
+create or replace function public.notification_admin_send_all(
+  p_code text,p_type text,p_title text,p_body text,p_link text default 'home'
+)
+returns integer language plpgsql security definer set search_path=''
+as $$
+declare cnt integer;
+begin
+  if not public.bank_admin_login(p_code) then
+    raise exception '관리자 코드가 올바르지 않습니다.';
+  end if;
+  if length(trim(coalesce(p_title,'')))=0 then raise exception '알림 제목을 입력하세요.'; end if;
+  if length(trim(coalesce(p_body,'')))=0 then raise exception '알림 내용을 입력하세요.'; end if;
+  if length(p_title)>100 or length(p_body)>1000 then raise exception '알림 제목은 100자, 내용은 1000자 이내입니다.'; end if;
+  insert into public.agora_notifications(account_id,type,title,body,link)
+  select id,coalesce(nullif(trim(p_type),''),'admin'),trim(p_title),trim(p_body),coalesce(nullif(trim(p_link),''),'home')
+  from public.bank_accounts;
+  get diagnostics cnt = row_count;
+  return cnt;
+end;
+$$;
+
+drop function if exists public.notification_admin_send_one(text,text,text,text,text,text);
+create or replace function public.notification_admin_send_one(
+  p_code text,p_no text,p_type text,p_title text,p_body text,p_link text default 'home'
+)
+returns boolean language plpgsql security definer set search_path=''
+as $$
+declare a public.bank_accounts;
+begin
+  if not public.bank_admin_login(p_code) then
+    raise exception '관리자 코드가 올바르지 않습니다.';
+  end if;
+  select * into a from public.bank_accounts where account_no=trim(p_no);
+  if not found then raise exception '해당 계좌를 찾을 수 없습니다.'; end if;
+  if length(trim(coalesce(p_title,'')))=0 then raise exception '알림 제목을 입력하세요.'; end if;
+  if length(trim(coalesce(p_body,'')))=0 then raise exception '알림 내용을 입력하세요.'; end if;
+  if length(p_title)>100 or length(p_body)>1000 then raise exception '알림 제목은 100자, 내용은 1000자 이내입니다.'; end if;
+  perform public.agora_notify(a.id,'admin',trim(p_title),trim(p_body),coalesce(nullif(trim(p_link),''),'home'));
+  return true;
+end;
+$$;
+
+revoke execute on function public.notification_admin_send_all(text,text,text,text,text,text) from public,authenticated;
+revoke execute on function public.notification_admin_send_one(text,text,text,text,text,text) from public,authenticated;
+grant execute on function public.notification_admin_send_all(text,text,text,text,text,text) to anon;
+grant execute on function public.notification_admin_send_one(text,text,text,text,text,text) to anon;
+notify pgrst,'reload schema';
