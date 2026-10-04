@@ -145,10 +145,10 @@ function renderApprovedAds(){
  if(!el)return;
  const ads=AGORA_APPROVED_ADS.filter(a=>a&&a.approved);
  if(!ads.length){el.innerHTML="";return;}
- el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>허가 광고</b></div><div class="ad-list">'+ads.map(a=>{
+ el.innerHTML='<div class="approved-ads-title"><span class="eyebrow">ADVERTISEMENT</span><b>광고</b></div><div class="ad-list">'+ads.map(a=>{
    const href=esc(a.url||"#");
    const target=a.url ? ' target="_blank" rel="noopener noreferrer"' : '';
-   return '<a class="ad-card" href="'+href+'"'+target+'><span class="ad-label">허가 광고</span><div class="ad-title">'+esc(a.title||"광고")+'</div><div class="ad-desc">'+esc(a.description||"")+'</div><div class="ad-sponsor">'+esc(a.sponsor||"광고주")+'</div></a>';
+   return '<a class="ad-card" href="'+href+'"'+target+'><span class="ad-label">광고</span><div class="ad-title">'+esc(a.title||"광고")+'</div><div class="ad-desc">'+esc(a.description||"")+'</div><div class="ad-sponsor">'+esc(a.sponsor||"광고주")+'</div></a>';
  }).join("")+"</div>";
 }
 function show(id){['home','student','market','stock','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
@@ -831,7 +831,7 @@ function renderAdmin(data){
  '<div class="panel"><h2>전체 거래내역</h2>'+(
  all.length?all.map(t=>'<div class="tx"><span><b>'+esc(t.name)+' · '+esc(t.no)+'</b><small>'+esc(t.date)+' · '+(t.type==='deposit'?'입금':'출금')+'</small></span><strong class="'+(t.type==='deposit'?'income':'expense')+'">'+(t.type==='deposit'?'+':'-')+Number(t.amount).toLocaleString()+'공</strong></div>').join('')
  :'<p class="muted">거래내역이 없습니다.</p>')+'</div>'+
- '<div class="panel"><h2>주식 시장 관리</h2><p class="muted">가상 주식의 주가를 등락률로 조절합니다. 입력값은 1% 단위로 사용할 수 있으며 -90%부터 +500%까지 허용됩니다.</p><div id="adminStockList"><p class="muted">주식 정보를 불러오는 중...</p></div></div><div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+ '<div class="panel"><h2>광고 관리</h2><p class="muted">광고를 등록하고 허가 여부를 관리합니다. 허가된 광고만 홈 화면 맨 아래에 표시됩니다.</p><div class="form-grid"><input id="adTitle" placeholder="광고 제목"><input id="adSponsor" placeholder="광고주"><input id="adUrl" placeholder="광고 링크 https://..."><input id="adDescription" placeholder="광고 설명"></div><button class="btn blue" onclick="adminAddAd()">광고 등록</button><div id="adMsg"></div><div id="adminAdList" style="margin-top:14px"><p class="muted">광고 정보를 불러오는 중...</p></div></div>'+
+ '<div class="panel"><h2>주식 시장 관리</h2><p class="muted">가상 주식의 주가를 등락률로 조절합니다. 입력값은 1% 단위로 사용할 수 있으며 -90%부터 +500%까지 허용됩니다.</p><div id="adminStockList"><p class="muted">주식 정보를 불러오는 중...</p></div></div><div class="panel"><h2>대출 관리</h2><p class="muted">회원의 대출 신청을 승인하거나 거절합니다. 승인하면 신청 금액이 회원 계좌에 입금됩니다.</p><div id="adminLoanList"><p class="muted">대출 정보를 불러오는 중...</p></div></div>'+ '<div class="panel"><h2>광고 관리</h2><p class="muted">광고를 등록하면 즉시 홈 화면 맨 아래에 표시됩니다.</p><div class="form-grid"><input id="adTitle" placeholder="광고 제목"><input id="adSponsor" placeholder="광고주"><input id="adUrl" placeholder="광고 링크 https://..."><input id="adDescription" placeholder="광고 설명"></div><button class="btn blue" onclick="adminAddAd()">광고 등록</button><div id="adMsg"></div><div id="adminAdList" style="margin-top:14px"><p class="muted">광고 정보를 불러오는 중...</p></div></div>'+
  '<button class="btn ghost" onclick="adminLogout()">잠금</button>';
  loadAdminLoans();
  loadAdminStocks();
@@ -944,14 +944,10 @@ async function adminAddAd(){
  const {data,error}=await supabaseClient.rpc('ad_admin_add',{p_code:adminCode,p_title:title,p_description:description,p_sponsor:sponsor,p_url:url});
  if(error||!data)return msg('adMsg',error?.message||'광고 등록에 실패했습니다.',true);
  document.getElementById('adTitle').value='';document.getElementById('adSponsor').value='';document.getElementById('adUrl').value='';document.getElementById('adDescription').value='';
- msg('adMsg','광고가 등록되었습니다. 현재는 허가 전 상태입니다.');
+ msg('adMsg','광고가 등록되었습니다. 홈 화면에 바로 표시됩니다.');
  await loadAdminAds();
 }
-async function adminToggleAd(id,approved){
- const {data,error}=await supabaseClient.rpc('ad_admin_set_approved',{p_code:adminCode,p_id:id,p_approved:approved});
- if(error||!data)return alert(error?.message||'광고 허가 상태 변경에 실패했습니다.');
- await loadAdminAds();await loadApprovedAds();
-}
+
 async function adminDeleteAd(id){
  if(!confirm('이 광고를 삭제할까요?'))return;
  const {data,error}=await supabaseClient.rpc('ad_admin_delete',{p_code:adminCode,p_id:id});
