@@ -284,32 +284,43 @@ function openEmergencyBroadcast(){
  w.id='agoraBroadcastWindow';w.className='tool-window';
  w.innerHTML=`<div class="tool-box"><div class="tool-head"><b>아고라 긴급방송</b><button class="tool-close" onclick="document.getElementById('agoraBroadcastWindow').remove()">닫기</button></div>
  <div class="broadcast-body">
- <div class="broadcast-screen"><div class="broadcast-live"><span class="broadcast-dot"></span> AGORA BROADCAST</div><div id="broadcastPreviewTitle" class="broadcast-title">방송 대기 중</div><div id="broadcastPreviewMessage" class="broadcast-message">제목과 내용을 입력하면 여기에 미리보기가 표시됩니다.</div></div>
- <div class="broadcast-form"><input id="broadcastTitle" placeholder="방송 제목"><input id="broadcastMessage" placeholder="방송 내용" oninput="updateBroadcastPreview()">
- <div class="broadcast-actions"><button class="btn red" onclick="sendEmergencyBroadcast()">전 회원 긴급방송</button><button class="btn ghost" onclick="updateBroadcastPreview()">미리보기</button></div><div id="broadcastMsg"></div></div>
+ <div class="broadcast-screen"><div class="broadcast-live"><span class="broadcast-dot"></span> AGORA EMERGENCY BROADCAST</div><div id="broadcastPreviewTitle" class="broadcast-title">방송 대기 중</div><div id="broadcastPreviewMessage" class="broadcast-message">제목과 내용을 입력하면 여기에 미리보기가 표시됩니다.</div><div id="broadcastPreviewTime" class="muted" style="color:#a9bce0;margin-top:12px">발송 전 미리보기</div></div>
+ <div class="broadcast-form">
+ <input id="broadcastTitle" maxlength="100" placeholder="긴급방송 제목">
+ <textarea id="broadcastMessage" maxlength="2000" placeholder="긴급방송 내용" oninput="updateBroadcastPreview()" style="min-height:120px;width:100%;box-sizing:border-box;resize:vertical"></textarea>
+ <div class="broadcast-actions"><button class="btn red" onclick="sendEmergencyBroadcast()">전 회원에게 긴급방송</button><button class="btn ghost" onclick="updateBroadcastPreview()">미리보기</button></div>
+ <div id="broadcastMsg"></div></div>
  </div></div>`;
  document.body.appendChild(w);
  document.getElementById('broadcastTitle').addEventListener('input',updateBroadcastPreview);
+ updateBroadcastPreview();
 }
 function updateBroadcastPreview(){
  const t=document.getElementById('broadcastTitle'),m=document.getElementById('broadcastMessage');
  if(!t||!m)return;
  document.getElementById('broadcastPreviewTitle').textContent=t.value.trim()||'방송 대기 중';
  document.getElementById('broadcastPreviewMessage').textContent=m.value.trim()||'제목과 내용을 입력하면 여기에 미리보기가 표시됩니다.';
+ const tm=document.getElementById('broadcastPreviewTime');
+ if(tm)tm.textContent='미리보기 · '+new Date().toLocaleString('ko-KR');
 }
 async function sendEmergencyBroadcast(){
  const title=document.getElementById('broadcastTitle')?.value.trim();
  const message=document.getElementById('broadcastMessage')?.value.trim();
  const out=document.getElementById('broadcastMsg');
- if(!title||!message){if(out)out.innerHTML='<div class="notice error">제목과 내용을 입력하세요.</div>';return;}
+ if(!title||!message){if(out)out.innerHTML='<div class="notice error">긴급방송 제목과 내용을 입력하세요.</div>';return;}
+ if(title.length>100||message.length>2000){if(out)out.innerHTML='<div class="notice error">제목은 100자, 내용은 2000자 이하로 입력하세요.</div>';return;}
  let code=adminCode;
- if(!code)code=prompt('관리자 코드를 입력하세요.');
+ if(!code)code=prompt('긴급방송 관리자 코드를 입력하세요.');
  if(!code)return;
  if(!supabaseClient){if(out)out.innerHTML='<div class="notice error">Supabase 연결이 없습니다.</div>';return;}
- const {data,error}=await supabaseClient.rpc('notification_admin_send_all',{p_code:String(code),p_title:title,p_message:message});
+ if(!confirm('모든 회원에게 긴급방송을 전송할까요?'))return;
+ const {data,error}=await supabaseClient.rpc('notification_admin_send_all',{p_code:String(code),p_title:'[긴급] '+title,p_message:message});
  if(error){if(out)out.innerHTML='<div class="notice error">방송 실패: '+esc(error.message)+'</div>';return;}
  adminCode=String(code);
- if(out)out.innerHTML='<div class="notice">긴급방송을 '+(data?.count||'전체')+'명에게 전송했습니다.</div>';
+ const count=Number(data?.count||0);
+ if(out)out.innerHTML='<div class="notice">긴급방송 전송 완료 · '+count.toLocaleString()+'명</div>';
+ const t=document.getElementById('broadcastTitle'),m=document.getElementById('broadcastMessage');
+ if(t)t.value='';if(m)m.value='';updateBroadcastPreview();
 }
 
 // ===== AGORA MONITOR =====
@@ -321,25 +332,51 @@ function openAgoraMonitor(){
  w.id='agoraMonitorWindow';w.className='monitor-window';
  w.innerHTML=`<div class="monitor-box"><div class="tool-head"><b>AGORA MONITOR</b><button class="tool-close" onclick="document.getElementById('agoraMonitorWindow').remove();clearInterval(agoraMonitorTimer)">닫기</button></div>
  <div class="monitor-grid">
-  <div class="monitor-card"><b>SYSTEM CLOCK</b><div id="monitorClock" class="monitor-clock">--:--:--</div><div class="muted">아고라 표준시</div></div>
-  <div class="monitor-card"><b>CORE STATUS</b><div class="monitor-value monitor-ok">ONLINE</div><div class="muted">BANK · MARKET · STOCK · MAIL</div></div>
+  <div class="monitor-card"><b>SYSTEM CLOCK</b><div id="monitorClock" class="monitor-clock">--:--:--</div><div class="muted">브라우저 기준 현재 시각</div></div>
+  <div class="monitor-card"><b>CORE STATUS</b><div id="monitorCore" class="monitor-value monitor-ok">ONLINE</div><div id="monitorCoreMeta" class="muted">웹 앱 상태 확인 중</div></div>
   <div class="monitor-card"><b>NOTIFICATION</b><div id="monitorNotify" class="monitor-value">0</div><div class="muted">현재 읽지 않은 알림</div></div>
-  <div class="monitor-card"><b>SYSTEM LOAD</b><div id="monitorLoad" class="monitor-value">--%</div><div class="monitor-bar"><div id="monitorFill" class="monitor-fill" style="width:0%"></div></div></div>
+  <div class="monitor-card"><b>RUNTIME MEMORY</b><div id="monitorLoad" class="monitor-value">측정 중</div><div class="monitor-bar"><div id="monitorFill" class="monitor-fill" style="width:0%"></div></div><div id="monitorLoadMeta" class="muted" style="margin-top:7px">브라우저가 제공하는 실제 JS 메모리 정보</div></div>
+  <div class="monitor-card"><b>PAGE RUNTIME</b><div id="monitorRuntime" class="monitor-value">0초</div><div class="muted">이 페이지가 열린 시간</div></div>
+  <div class="monitor-card"><b>NETWORK</b><div id="monitorNetwork" class="monitor-value">--</div><div class="muted">브라우저 연결 상태</div></div>
  </div>
- <div id="monitorLog" class="monitor-log">[AGORA MONITOR] 시스템 모니터링 시작...</div>
+ <div id="monitorLog" class="monitor-log">[AGORA MONITOR] 실제 브라우저 런타임 정보를 읽는 중...</div>
  </div>`;
  document.body.appendChild(w);
+ const started=performance.now();
  const tick=()=>{
-   const now=new Date();
    const clock=document.getElementById('monitorClock');
    const load=document.getElementById('monitorLoad');
    const fill=document.getElementById('monitorFill');
    const notify=document.getElementById('monitorNotify');
+   const runtime=document.getElementById('monitorRuntime');
+   const network=document.getElementById('monitorNetwork');
+   const log=document.getElementById('monitorLog');
    if(!clock){clearInterval(agoraMonitorTimer);return;}
-   clock.textContent=now.toLocaleTimeString('ko-KR',{hour12:false});
-   const v=Math.floor(18+Math.random()*63);
-   load.textContent=v+'%';fill.style.width=v+'%';
+   clock.textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false});
    notify.textContent=String(notifyItems?.filter(x=>!x.read_at).length||0);
+   const sec=Math.floor((performance.now()-started)/1000);
+   runtime.textContent=sec+'초';
+   network.textContent=navigator.onLine?'ONLINE':'OFFLINE';
+   const core=document.getElementById('monitorCore');
+   const coreMeta=document.getElementById('monitorCoreMeta');
+   if(core)core.textContent=navigator.onLine?'ONLINE':'OFFLINE';
+   if(coreMeta)coreMeta.textContent='BANK · MARKET · STOCK · MAIL · NOTIFY';
+   if(performance.memory){
+     const used=performance.memory.usedJSHeapSize;
+     const total=performance.memory.jsHeapSizeLimit||performance.memory.totalJSHeapSize;
+     const pct=total?Math.min(100,Math.round(used/total*100)):0;
+     load.textContent=pct+'%';
+     fill.style.width=pct+'%';
+     const mb=Math.round(used/1024/1024);
+     const limit=Math.round(total/1024/1024);
+     document.getElementById('monitorLoadMeta').textContent='JS 메모리 '+mb.toLocaleString()+'MB / 한도 '+limit.toLocaleString()+'MB';
+     log.textContent='[AGORA MONITOR] '+new Date().toLocaleTimeString('ko-KR')+'\nRUNTIME MEMORY '+mb+'MB\nNETWORK '+(navigator.onLine?'ONLINE':'OFFLINE')+'\nNOTIFY '+notify.textContent;
+   }else{
+     load.textContent='N/A';
+     fill.style.width='0%';
+     document.getElementById('monitorLoadMeta').textContent='이 브라우저는 실제 JS 메모리 측정을 제공하지 않습니다.';
+     log.textContent='[AGORA MONITOR] 실제 시스템 CPU 사용률은 웹 브라우저 보안상 직접 측정할 수 없습니다.\n대신 브라우저가 제공하는 런타임 정보만 표시합니다.';
+   }
  };
  tick();agoraMonitorTimer=setInterval(tick,1000);
 }
