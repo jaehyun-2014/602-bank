@@ -532,7 +532,15 @@ function term2Run(raw){
  else {term2Print('알 수 없는 명령입니다. help 를 입력하세요.','term2-warn');}
 }
 
-function show(id){['home','student','market','stock','mail','notifications','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+function show(id){
+ ['home','student','market','stock','mail','notifications','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
+ if(!currentMember)return;
+ if(id==='student') renderStudent();
+ if(id==='market'){ updateMarketAccount(); loadMarket(); refreshCartCount(); }
+ if(id==='stock'){ updateStockAccount(); loadStocks(); }
+ if(id==='mail') loadMail();
+ if(id==='notifications') loadNotifications();
+}
 function openBlueScreen(){
  const old=document.getElementById('agoraBlueScreen');
  if(old){old.remove();document.body.style.overflow='';return;}
