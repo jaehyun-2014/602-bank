@@ -1352,17 +1352,61 @@ function showEconomyTroll(){
 }
 async function studentTx(type){
  if(!requireSupabase('txmsg'))return;
- const amt=Number(document.getElementById('amt').value);
- if(!Number.isInteger(amt)||amt<1)return msg('txmsg','1공 이상의 금액을 입력하세요.',true);
- const adminApproval=prompt('관리자 승인 코드를 입력하세요.');
- if(!adminApproval)return msg('txmsg','관리자 승인 코드가 필요합니다.',true);
- const {data,error}=await supabaseClient.rpc('bank_transaction',{p_no:currentMember.no,p_pin:currentMember.pin,p_type:type,p_amount:amt,p_admin_code:adminApproval.trim()});
- if(error||!data)return msg('txmsg',error?.message||'거래에 실패했습니다.',true);
- const login=await supabaseClient.rpc('bank_member_login',{p_no:currentMember.no,p_name:currentMember.account.name,p_pin:currentMember.pin});
- if(login.error||!login.data)return msg('txmsg','거래는 완료됐지만 계좌 새로고침에 실패했습니다.',true);
- currentMember.account=login.data.account;currentMember.tx=login.data.tx||[];currentMember.transfers=login.data.transfers||[];
- renderStudent();
- msg('txmsg',type==='deposit'?'입금 완료':'출금 완료');
+ if(type!=='deposit'&&type!=='withdraw')return msg('txmsg','잘못된 거래 유형입니다.',true);
+
+ const input=document.getElementById('amt');
+ const raw=String(input?.value||'').trim();
+ if(!/^\\d+$/.test(raw))return msg('txmsg','1공 이상의 정수 금액을 입력하세요.',true);
+
+ let amount;
+ try{
+   amount=BigInt(raw);
+   if(amount<1n||amount>9223372036854775807n)throw new Error();
+ }catch(e){
+   return msg('txmsg','입력 가능한 금액 범위를 확인하세요.',true);
+ }
+
+ const adminApproval=prompt((type==='withdraw'?'출금':'입금')+' 승인 코드를 입력하세요.');
+ if(adminApproval===null)return msg('txmsg','거래가 취소되었습니다.',true);
+ const code=adminApproval.trim();
+ if(!code)return msg('txmsg','관리자 승인 코드가 필요합니다.',true);
+
+ const buttons=document.querySelectorAll('[onclick="studentTx(\\'deposit\\')"],[onclick="studentTx(\\'withdraw\\')"]');
+ buttons.forEach(b=>b.disabled=true);
+ msg('txmsg','거래 처리 중...');
+
+ try{
+   const {data,error}=await supabaseClient.rpc('bank_transaction',{
+     p_no:currentMember.no,
+     p_pin:currentMember.pin,
+     p_type:type,
+     p_amount:amount.toString(),
+     p_admin_code:code
+   });
+
+   if(error||!data){
+     const detail=error?.message||error?.details||error?.hint||'거래에 실패했습니다.';
+     return msg('txmsg',detail,true);
+   }
+
+   const login=await supabaseClient.rpc('bank_member_login',{
+     p_no:currentMember.no,
+     p_name:currentMember.account.name,
+     p_pin:currentMember.pin
+   });
+
+   if(login.error||!login.data){
+     return msg('txmsg','거래는 완료됐지만 계좌 새로고침에 실패했습니다. 다시 들어오면 잔액이 반영됩니다.',true);
+   }
+
+   currentMember.account=login.data.account;
+   currentMember.tx=login.data.tx||[];
+   currentMember.transfers=login.data.transfers||[];
+   renderStudent();
+   msg('txmsg',type==='deposit'?'입금 완료':'출금 완료');
+ }finally{
+   buttons.forEach(b=>b.disabled=false);
+ }
 }
 
 
