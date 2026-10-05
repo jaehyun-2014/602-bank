@@ -1305,8 +1305,8 @@ function renderStudent(){
  <div class="panel"><h2>입·출금</h2><p class="muted">거래 금액을 입력하세요.</p>
   <input id="amt" type="number" min="1" placeholder="금액">
   <div class="two">
-   <button class="btn green" onclick="studentTx('deposit')">입금</button>
-   <button class="btn red" onclick="studentTx('withdraw')">출금</button>
+   <button class="btn green tx-action" onclick="studentTx('deposit')">입금</button>
+   <button class="btn red tx-action" onclick="studentTx('withdraw')">출금</button>
   </div>
   <div id="txmsg"></div>
  </div>
@@ -1371,7 +1371,7 @@ async function studentTx(type){
  const code=adminApproval.trim();
  if(!code)return msg('txmsg','관리자 승인 코드가 필요합니다.',true);
 
- const buttons=document.querySelectorAll('[onclick="studentTx(\\'deposit\\')"],[onclick="studentTx(\\'withdraw\\')"]');
+ const buttons=document.querySelectorAll('#studentDash .tx-action');
  buttons.forEach(b=>b.disabled=true);
  msg('txmsg','거래 처리 중...');
 
