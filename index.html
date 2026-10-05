@@ -1356,7 +1356,7 @@ async function studentTx(type){
 
  const input=document.getElementById('amt');
  const raw=String(input?.value||'').trim();
- if(!/^\\d+$/.test(raw))return msg('txmsg','1공 이상의 정수 금액을 입력하세요.',true);
+ if(!/^\d+$/.test(raw))return msg('txmsg','1공 이상의 정수 금액을 입력하세요.',true);
 
  let amount;
  try{
