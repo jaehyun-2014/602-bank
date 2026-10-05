@@ -919,9 +919,11 @@ async function uploadMarketFile(file,folder){
  const originalName=file.name||'upload.bin';
  const ext=(originalName.match(/\.([^.]+)$/)||['','bin'])[1].toLowerCase();
  const base=(originalName.replace(/\.[^.]+$/,'')||'file')
-   .replace(/[^0-9A-Za-z_-]/g,'_')
-   .replace(/^_+|_+$/g,'')
-   .slice(0,80)||'file';
+   .normalize('NFC')
+   .replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ_\- ]/g,'_')
+   .replace(/[\\/:"*?<>|]/g,'_')
+   .replace(/^\s+|\s+$/g,'')
+   .slice(0,100)||'file';
  const safe=base+'.'+ext;
 
  const blocked=['exe','dll','bat','cmd','com','scr','msi','ps1','vbs','js'];
